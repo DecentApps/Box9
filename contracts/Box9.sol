@@ -17,7 +17,9 @@ contract Box9 {
     uint256 constant silverReward = 125; // 3 digits
     address zeroAddress = address(0x0);
 
-    function Box9(address _houseWallet) public {
+    //function Box9(address _houseWallet) public {
+    function Box9() public {
+        address _houseWallet = msg.sender; /* set to cunstructore arg later*/
         admin = msg.sender;
         houseWallet = _houseWallet;
 
@@ -32,21 +34,36 @@ contract Box9 {
     struct Player {
         address referrer;
         uint256 balance;
-    }
-
-    struct Refferer {
-        uint256 rewards;
         address[] referrees;
+        uint256 rewards;
+        uint256[] betIds;
     }
 
     struct Round {
-        //uint256 blockHeight;
+        //mapping by blockHeight;
+        uint256 block;
         uint256 result; // blockhash
         uint256[] pot; //for each table
         // also players with chosen boxes, table and amount
     }
 
+    struct Table {
+        uint256 id;
+        uint256 price;
+    }
+
+    struct Betting {
+        uint256 id;
+        address player;
+        uint256 round;
+        uint256 tableIndex;
+        uint16 boxChoice;
+    }
+
     mapping(address => Player) private playerInfo;
+    mapping(uint256 => Round) private roundInfo;
+    mapping(uint256 => Table) private tableInfo;
+    mapping(uint256 => Betting) private betInfo;
 
     modifier isAdmin() {
         assert(msg.sender == admin);
@@ -97,10 +114,11 @@ contract Box9 {
         if (_referrer == zeroAddress) {
             pl.referrer = houseWallet;
         } else {
-            /* register if referrer already registered */
+            /* register only if referrer already registered */
             Player storage referrer = playerInfo[_referrer];
             require(referrer.referrer != zeroAddress);
             pl.referrer = _referrer;
+            referrer.referrees.push(msg.sender);
         }
     }
 
@@ -193,7 +211,6 @@ contract Box9 {
     function showTables() public view returns (uint256[]) {
         return tables;
     }
-
 
     /**
      * @notice returns the winning boxes by index
