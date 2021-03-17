@@ -67,6 +67,7 @@ contract Box9 is Ibox9 {
     /* events */
     event RegisterEvent(address player, address referrer);
     event DepositEvent(address player, uint256 amount);
+    event WithdrawEvent(address player, address destination, uint256 amount);
 
     modifier isAdmin() {
         assert(msg.sender == admin);
@@ -215,7 +216,14 @@ contract Box9 is Ibox9 {
      * @param  _amount - the number of coins
      * @param  _to - receiver's address
      */
-    //function withdraw(address _to ,uint256 _amount) external payable;
+    function withdraw(address _to, uint256 _amount) external payable {
+        require(_amount > 0);
+        Player storage pl = playerInfo[msg.sender];
+        require(pl.balance >= _amount);
+        pl.balance.sub(_amount);
+        _to.transfer(_amount);
+        emit WithdrawEvent(msg.sender, _to, _amount);
+    }
 
     /**
      * @notice return all table prices
