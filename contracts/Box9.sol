@@ -11,14 +11,15 @@ contract Box9 is Ibox9 {
     address admin;
     address houseWallet;
     uint256[] tables;
-    uint256 constant referralReward = 10; // 3 digits
-    uint256 constant goldReward = 700; // 3 digits
-    uint256 constant silverReward = 125; // 3 digits
-    address zeroAddress = address(0x0);
+    uint256 constant referralReward = 10; /* 3 digits */
+    uint256 constant goldReward = 700; /* 3 digits */
+    uint256 constant silverReward = 125; /* 3 digits */
+    uint256 constant session = 10; /* blocks between spins */
+    address constant zeroAddress = address(0x0);
 
     //function Box9(address _houseWallet) public {
     function Box9() public {
-        address _houseWallet = msg.sender; /* set to cunstructore arg later*/
+        address _houseWallet = msg.sender; /* set to cunstructor arg later*/
         admin = msg.sender;
         houseWallet = _houseWallet;
 
@@ -43,7 +44,7 @@ contract Box9 is Ibox9 {
         uint256 block;
         uint256 result; // blockhash
         uint256[] pot; //for each table
-        // also players with chosen boxes, table and amount
+        uint256[] betId; /* all bets for this round */
     }
 
     struct Table {
@@ -267,5 +268,22 @@ contract Box9 is Ibox9 {
         }
 
         return result;
+    }
+
+    /**
+     * @notice returns block height for next round
+     * @return uint256 - the block height of next spin
+     */
+    function getNextRound() internal view returns (uint256 blockHeight) {
+        uint256 nextSpin;
+        uint256 gap;
+
+        nextSpin = block.number;
+        gap = nextSpin.mod(session);
+        if (gap == session) {
+            gap = 0;
+        }
+        nextSpin = nextSpin.add(session - gap);
+        return nextSpin;
     }
 }
