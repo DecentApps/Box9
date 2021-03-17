@@ -1,6 +1,6 @@
 /* https://www.apache.org/licenses/LICENSE-2.0 */
 
-pragma solidity 0.4.21;
+pragma solidity ^0.4.20;
 
 interface Ibox9 {
 
@@ -8,7 +8,7 @@ interface Ibox9 {
     * @notice fallback not payable
     * don't accept deposits directly, user must call deposit()
     */
-    function() external;    
+    function() external;
 
     /**
      * @notice adds new table, the only difference is box price
@@ -16,7 +16,7 @@ interface Ibox9 {
      * @param  _box_price - price in coins per box
      * @return uint8 - returns the table id
      */
-    function addNewTable(uint256 _box_price) external returns(uint8 tableId);
+    function addNewTable(uint256 _box_price) external returns(uint256 tableId);
 
     /**
      * @notice withdraws all profits to cold wallet
@@ -47,7 +47,7 @@ interface Ibox9 {
      * @param  _player address
      * @return ....
      */
-    function playerInfo(address _player) view returns(/* data from player struct */);
+    //function playerInfo(address _player) view returns(/* data from player struct */);
 
     /**
      * @notice player chooses boxes (6 maximum)
@@ -108,6 +108,12 @@ interface Ibox9 {
      * @param  _to - receiver's address
      */
      function withdraw(address _to ,uint256 _amount) external payable;
+
+    /**
+     * @notice return all table prices
+     * @return uint256[] - returns the table's box prices
+     */
+    function showTables()public view returns(uint256[] tables);
 
      /* Events */
 

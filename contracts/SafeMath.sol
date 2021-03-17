@@ -1,6 +1,6 @@
 /* https://www.apache.org/licenses/LICENSE-2.0 */
 
-pragma solidity 0.4.21;
+pragma solidity ^0.4.20;
 
 library SafeMath {
     function add(uint256 a, uint256 b) internal pure returns (uint256) {
