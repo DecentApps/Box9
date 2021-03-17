@@ -29,7 +29,7 @@ interface Ibox9 {
      * or the zero address if he doesn't have one
      * Refferer can't be changed later
      * Refferer must have already been registered
-     * @param  _referrer
+     * @param  _referrer - referrer's address
      */
     function register(address _referrer) external;
 
@@ -40,16 +40,25 @@ interface Ibox9 {
      * @return uint256 , total coins in pool for this round
      */
     function poolTotal(uint256 _blocknumber, uint256 _tableId)
-        public
+        external
         view
         returns (uint256 total);
 
     /**
      * @notice returns useful data for a player
      * @param  _player address
-     * @return ....
+     * @return address - refferer's address
+     * @return uint256 - balance
+     * @return uint256 - commissions
      */
-    //function playerInfo(address _player) view returns(/* data from player struct */);
+    function playerInfo(address _player)
+        external
+        view
+        returns (
+            address referrer,
+            uint256 balance,
+            uint256 commissions
+        );
 
     /**
      * @notice player chooses boxes (6 maximum)
@@ -70,18 +79,18 @@ interface Ibox9 {
      * @return amount[] - amount in coins for each player
      */
     function currentPlayers(uint256 _blocknumber, uint256 _tableId)
-        public
+        external
         returns (address[] players, uint256 amount);
 
     /**
-     * @notice gets the non empty(winning) boxes for a round
-     * @param   _blocknumber the block height of the round
-     * @return returns the boxes encoded in an uint16 at lower bits (bitmask to decode)
+     * @notice returns the winning boxes by index
+     * @param  _blockhash - the blockhash to decode
+     * @return uint8[3] - returns three winning boxes by index (first is golden)
      */
-    function roundResult(uint256 _blocknumber)
+    function roundResult(uint256 _blockhash)
         public
-        view
-        returns (uint16 awardedBoxes);
+        pure
+        returns (uint8[3] result);
 
     /**
      * @notice update the smart contract's state after a round - callable by anyone
@@ -126,7 +135,9 @@ interface Ibox9 {
      * @notice return all table prices
      * @return uint256[] - returns the table's box prices
      */
-    function showTables() public view returns (uint256[] tables);
+    function showTables() external view returns (uint256[] tables);
 
     /* Events */
+    event RegisterEvent(address player, address referrer);
+    event DepositEvent(address player, uint256 amount);
 }

@@ -2,11 +2,10 @@
 
 pragma solidity ^0.4.20;
 
-//import "./Ibox9.sol";
+import "./Ibox9.sol";
 import "./SafeMath.sol";
 
-/* is IBox9 */
-contract Box9 {
+contract Box9 is Ibox9 {
     using SafeMath for uint256;
 
     address admin;
@@ -65,6 +64,10 @@ contract Box9 {
     mapping(uint256 => Table) private tableInfo;
     mapping(uint256 => Betting) private betInfo;
 
+    /* events */
+    event RegisterEvent(address player, address referrer);
+    event DepositEvent(address player, uint256 amount);
+
     modifier isAdmin() {
         assert(msg.sender == admin);
         _;
@@ -113,12 +116,14 @@ contract Box9 {
         /* check if there is a referrer*/
         if (_referrer == zeroAddress) {
             pl.referrer = houseWallet;
+            emit RegisterEvent(msg.sender, zeroAddress);
         } else {
             /* register only if referrer already registered */
             Player storage referrer = playerInfo[_referrer];
             require(referrer.referrer != zeroAddress);
             pl.referrer = _referrer;
             referrer.referrees.push(msg.sender);
+            emit RegisterEvent(msg.sender, _referrer);
         }
     }
 
@@ -135,14 +140,16 @@ contract Box9 {
      * @param  _tableId - the table id
      * @return uint256 , total coins in pool for this round
      */
-    //function poolTotal(uint256 _blocknumber, uint256 _tableId) view returns (uint256 total);
+    //function poolTotal(uint256 _blocknumber, uint256 _tableId) external view returns (uint256 total);
 
     /**
      * @notice returns useful data for a player
      * @param  _player address
-     * @return ....
+     * @return address - refferer's address
+     * @return uint256 - balance
+     * @return uint256 - commissions
      */
-    //function playerInfo(address _player) view returns(/* data from player struct */);
+    //function playerInfo(address _player) external view returns(address referrer, uint256 balance, uint256 commissions);
 
     /**
      * @notice player chooses boxes (6 maximum)
@@ -160,7 +167,7 @@ contract Box9 {
      * @return address[] - list of all players for the round
      * @return amount[] - amount in coins for each player
      */
-    //function currentPlayers(uint256 _blocknumber, uint256 _tableId) public returns(address[] players, uint256 amount);
+    //function currentPlayers(uint256 _blocknumber, uint256 _tableId) external returns(address[] players, uint256 amount);
 
     /**
      * @notice gets the non empty(winning) boxes for a round
@@ -194,7 +201,13 @@ contract Box9 {
      * @notice deposit ECOC
      * revert on non-register user
      */
-    //function deposit() external payable;
+    function deposit() external payable isPlayer(msg.sender) {
+        require(msg.value > 0);
+
+        Player storage pl = playerInfo[msg.sender];
+        pl.balance.add(msg.value);
+        emit DepositEvent(msg.sender, msg.value);
+    }
 
     /**
      * @notice withdraw ECOC, can be to any address
@@ -208,7 +221,7 @@ contract Box9 {
      * @notice return all table prices
      * @return uint256[] - returns the table's box prices
      */
-    function showTables() public view returns (uint256[]) {
+    function showTables() external view returns (uint256[]) {
         return tables;
     }
 
