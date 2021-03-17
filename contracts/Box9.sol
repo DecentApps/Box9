@@ -5,7 +5,8 @@ pragma solidity ^0.4.20;
 //import "./Ibox9.sol";
 import "./SafeMath.sol";
 
-contract Box9 /* is IBox9 */ {
+/* is IBox9 */
+contract Box9 {
     using SafeMath for uint256;
 
     address admin;
@@ -68,7 +69,7 @@ contract Box9 /* is IBox9 */ {
      * @notice adds new table, the only difference is box price
      * only contract owner can add a table
      * @param  _box_price - price in coins per box
-     * @return uint8 - returns the table id
+     * @return uint256 - returns the table id
      */
     function addNewTable(uint256 _box_price)
         external
@@ -116,7 +117,7 @@ contract Box9 /* is IBox9 */ {
      * @param  _tableId - the table id
      * @return uint256 , total coins in pool for this round
      */
-    //function poolTotal(uint256 _blocknumber, uint8 _tableId) view returns (uint256 total);
+    //function poolTotal(uint256 _blocknumber, uint256 _tableId) view returns (uint256 total);
 
     /**
      * @notice returns useful data for a player
@@ -132,7 +133,7 @@ contract Box9 /* is IBox9 */ {
      * @param  _tableId - the table
      * @return uint256 - the next blockheigh for the box spin
      */
-    //function chooseBoxes(uint16 _chosenBoxes, uint8 _tableId) external returns(uint256 round);
+    //function chooseBoxes(uint16 _chosenBoxes, uint256 _tableId) external returns(uint256 round);
 
     /**
      * @notice shows current players and betting amounts for a table
@@ -141,7 +142,7 @@ contract Box9 /* is IBox9 */ {
      * @return address[] - list of all players for the round
      * @return amount[] - amount in coins for each player
      */
-    //function currentPlayers(uint256 _blocknumber, uint8 _tableId) public returns(address[] players, uint256 amount);
+    //function currentPlayers(uint256 _blocknumber, uint256 _tableId) public returns(address[] players, uint256 amount);
 
     /**
      * @notice gets the non empty(winning) boxes for a round
@@ -191,5 +192,42 @@ contract Box9 /* is IBox9 */ {
      */
     function showTables() public view returns (uint256[]) {
         return tables;
+    }
+
+
+    /**
+     * @notice returns the winning boxes by index
+     * @param  _blockhash - the blockhash to decode
+     * @return uint8[3] - returns three winning boxes by index (first is golden)
+     */
+    function roundResult(uint256 _blockhash)
+        public
+        pure
+        returns (uint8[3] result)
+    {
+        uint256 mask = 0xfffffff;
+        uint256[9] memory boxes;
+        uint256 min;
+        uint256 index;
+        uint256 random = _blockhash >> 4; /* discard the last hex digit*/
+        for (uint8 i = 0; i < 9; i++) {
+            boxes[8 - i] = random & mask; /* get last 7 hex digits */
+            random = random >> (7 * 4); /* prepare the random number for next box */
+        }
+
+        /* get the three lowest numbers */
+        for (uint8 j = 0; j < 3; j++) {
+            min = boxes[0];
+            for (i = 1; i < 9; i++) {
+                if (boxes[i] < min) {
+                    min = boxes[i];
+                    index = i;
+                }
+            }
+            boxes[index] = uint256(-1);
+            result[j] = uint8(index);
+        }
+
+        return result;
     }
 }
