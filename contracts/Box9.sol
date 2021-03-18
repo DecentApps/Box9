@@ -49,7 +49,11 @@ contract Box9 is Ibox9 {
 
     struct Table {
         uint256 id;
-        uint256 price;
+        uint256 boxPrice;
+        uint256 round;
+        address[] players;
+        uint16[] choices;
+        bool dealt;
     }
 
     struct Betting {
@@ -285,5 +289,41 @@ contract Box9 is Ibox9 {
         }
         nextSpin = nextSpin.add(session - gap);
         return nextSpin;
+    }
+
+    /**
+     * @notice checks the 16bit number of box choice
+     * @param _encoded_number - the choice payload
+     * @return uint16[] - returns the number of choiced boxes, zero if invalid
+     */
+    function checkValidity(uint16 _encoded_number)
+        internal
+        pure
+        returns (uint8 quantity)
+    {
+        uint8 maxQuantity = 6;
+        uint16 mask = 0x8000; /* mask to set first bit */
+        /* 7 most significant bits must be zero */
+        for (uint8 i = 0; i < 7; i++) {
+            if (_encoded_number & mask != 0) {
+                return 0;
+            }
+            mask = mask >> 1; /* next bit check */
+        }
+
+        /* count chosen boxes */
+        for (i = 0; i < 9; i++) {
+            if (_encoded_number & mask != 0) {
+                quantity++;
+            }
+            mask = mask >> 1; /* next bit check */
+        }
+
+        /* choice limit is 6 per round */
+        if (quantity > maxQuantity) {
+            return 0;
+        }
+
+        return quantity;
     }
 }
