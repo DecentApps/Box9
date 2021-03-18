@@ -12,9 +12,10 @@ contract Box9 is Ibox9 {
     address houseWallet;
     uint256[] tables;
     uint256 nextBet;
-    uint256 constant referralReward = 10; /* 3 digits */
-    uint256 constant goldReward = 700; /* 3 digits */
-    uint256 constant silverReward = 125; /* 3 digits */
+    uint256 constant precision = 3; /* decimal places for mantissa */
+    uint256 constant referralReward = 10;
+    uint256 constant goldReward = 700;
+    uint256 constant silverReward = 125;
     uint256 constant session = 10; /* blocks between spins */
     address constant zeroAddress = address(0x0);
 
@@ -39,6 +40,7 @@ contract Box9 is Ibox9 {
         address[] referrees;
         uint256 rewards;
         uint256[] betIds;
+        uint256 totalBets;
     }
 
     struct Round {
@@ -237,9 +239,18 @@ contract Box9 is Ibox9 {
     /**
      * @notice reward info
      * @param  _referree - the address of referee
-     * @return address, uint256 - returns the referrer address and total rewards given to him
+     * @return address, uint256 - returns the referrer address and total rewards given to referrer
      */
-    //function referralsGiven(address _referree) external returns(address referrer, uint256 amount);
+    function referralsGiven(address _referree)
+        external
+        isPlayer(_referree)
+        returns (address referrer, uint256 amount)
+    {
+        Player storage pl = playerInfo[_referree];
+        amount = (pl.totalBets * referralReward) / (10**precision);
+
+        return (pl.referrer, amount);
+    }
 
     /**
      * @notice deposit ECOC

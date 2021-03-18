@@ -111,7 +111,7 @@ interface Ibox9 {
     /**
      * @notice reward info
      * @param  _referree - the address of referee
-     * @return address, uint256 - returns the referrer address and total rewards given to him
+     * @return address, uint256 - returns the referrer address and total rewards given to referrer
      */
     function referralsGiven(address _referree)
         external
