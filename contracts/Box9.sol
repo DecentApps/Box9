@@ -209,6 +209,8 @@ contract Box9 is Ibox9 {
         r.betId.push(bet.id);
         r.pot[_tableId] = r.pot[_tableId].add(amount);
 
+        pl.totalBets = pl.totalBets.add(amount);
+
         /* emit event */
         emit BetEvent(bet.id, amount);
     }
