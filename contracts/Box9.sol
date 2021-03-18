@@ -213,6 +213,8 @@ contract Box9 is Ibox9 {
 
         /* emit event */
         emit BetEvent(bet.id, amount);
+
+        return round;
     }
 
     /**
@@ -236,7 +238,24 @@ contract Box9 is Ibox9 {
      * @param _referrer  - address of the referrer
      * @return address[], uint256[] - returns the referee addresses and corresponding total amount of coins
      */
-    //function showReferralRewards(address _referrer) external returns(address[] referrees , uint256[] totalRewards);
+    function showReferralRewards(address _referrer)
+        external
+        view
+        isPlayer(_referrer)
+        returns (address[] referrees, uint256[] totalRewards)
+    {
+        Player memory pl = playerInfo[_referrer];
+        referrees = pl.referrees;
+        for (uint256 i = 0; i < referrees.length; i++) {
+            Player memory ref = playerInfo[referrees[i]];
+            totalRewards[i] =
+                (ref.totalBets * referralReward) /
+                (10**precision);
+            delete ref;
+        }
+
+        return (referrees, totalRewards);
+    }
 
     /**
      * @notice reward info
@@ -245,6 +264,7 @@ contract Box9 is Ibox9 {
      */
     function referralsGiven(address _referree)
         external
+        view
         isPlayer(_referree)
         returns (address referrer, uint256 amount)
     {

@@ -106,15 +106,17 @@ interface Ibox9 {
      */
     function showReferralRewards(address _referrer)
         external
+        view
         returns (address[] referrees, uint256[] totalRewards);
 
     /**
      * @notice reward info
      * @param  _referree - the address of referee
-     * @return address, uint256 - returns the referrer address and total rewards given to referrer
+     * @return address, uint256 - returns the referrer address and total rewards given to him
      */
     function referralsGiven(address _referree)
         external
+        view
         returns (address referrer, uint256 amount);
 
     /**
