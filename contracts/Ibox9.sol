@@ -141,4 +141,5 @@ interface Ibox9 {
     event RegisterEvent(address player, address referrer);
     event DepositEvent(address player, uint256 amount);
     event WithdrawEvent(address player, address destination, uint256 amount);
+    event BetEvent(uint256 BettingId, uint256 amount);
 }

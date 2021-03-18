@@ -11,6 +11,7 @@ contract Box9 is Ibox9 {
     address admin;
     address houseWallet;
     uint256[] tables;
+    uint256 nextBet;
     uint256 constant referralReward = 10; /* 3 digits */
     uint256 constant goldReward = 700; /* 3 digits */
     uint256 constant silverReward = 125; /* 3 digits */
@@ -22,6 +23,7 @@ contract Box9 is Ibox9 {
         address _houseWallet = msg.sender; /* set to cunstructor arg later*/
         admin = msg.sender;
         houseWallet = _houseWallet;
+        nextBet = 1;
 
         /* initiate tables */
         tables.push(10 * 1e8);
@@ -64,6 +66,7 @@ contract Box9 is Ibox9 {
         uint16 boxChoice;
     }
 
+    /* mappings */
     mapping(address => Player) private playerInfo;
     mapping(uint256 => Round) private roundInfo;
     mapping(uint256 => Table) private tableInfo;
@@ -73,6 +76,7 @@ contract Box9 is Ibox9 {
     event RegisterEvent(address player, address referrer);
     event DepositEvent(address player, uint256 amount);
     event WithdrawEvent(address player, address destination, uint256 amount);
+    event BetEvent(uint256 BettingId, uint256 amount);
 
     modifier isAdmin() {
         assert(msg.sender == admin);
@@ -164,7 +168,48 @@ contract Box9 is Ibox9 {
      * @param  _tableId - the table
      * @return uint256 - the next blockheigh for the box spin
      */
-    //function chooseBoxes(uint16 _chosenBoxes, uint256 _tableId) external returns(uint256 round);
+    function chooseBoxes(uint16 _chosenBoxes, uint256 _tableId)
+        external
+        isPlayer(msg.sender)
+        returns (uint256 round)
+    {
+        uint8 quantity;
+        quantity = checkValidity(_chosenBoxes);
+        require(quantity != 0);
+
+        /* check if table exists */
+        require(_tableId < tables.length);
+        uint256 boxprice = tables[_tableId];
+        require(boxprice > 0);
+
+        /* check if enough balance */
+        Player storage pl = playerInfo[msg.sender];
+        uint256 amount = quantity * boxprice;
+        require(pl.balance >= amount);
+
+        /* decrease balance */
+        pl.balance = pl.balance.sub(amount);
+
+        /* get next round */
+        round = getNextRound();
+
+        /* create bet struct , update round info */
+        Betting storage bet = betInfo[nextBet];
+        bet.id = nextBet;
+        nextBet = nextBet.add(1);
+        bet.player = msg.sender;
+        bet.round = round;
+        bet.tableIndex = _tableId;
+        bet.boxChoice = _chosenBoxes;
+
+        Round storage r = roundInfo[round];
+        r.block = round;
+        r.betId.push(bet.id);
+        r.pot[_tableId] = r.pot[_tableId].add(amount);
+
+        /* emit event */
+        emit BetEvent(bet.id, amount);
+    }
 
     /**
      * @notice shows current players and betting amounts for a table
