@@ -83,13 +83,13 @@ interface Ibox9 {
         returns (address[] players, uint256 amount);
 
     /**
-     * @notice returns the winning boxes by index
-     * @param  _blockhash - the blockhash to decode
-     * @return uint8[3] - returns three winning boxes by index (first is golden)
+     * @notice returns the winning boxes by block height
+     * @param  _round - block height
+     * @return uint8[3] - returns three winning boxes by box index (first is golden)
      */
-    function roundResult(uint256 _blockhash)
-        public
-        pure
+    function winningBoxes(uint256 _round)
+        external
+        view
         returns (uint8[3] result);
 
     /**
@@ -97,7 +97,7 @@ interface Ibox9 {
      * @param  _blocknumber the block height of the round
      * @return bool - should return true or revert if it was called succesfully before
      */
-    function giveReward(uint256 _blocknumber) public returns (bool result);
+    function giveReward(uint256 _blocknumber) external returns (bool result);
 
     /**
      * @notice shows the data of current rewards for a refferer
