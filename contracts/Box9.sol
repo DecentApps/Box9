@@ -221,13 +221,6 @@ contract Box9 is Ibox9 {
     //function currentPlayers(uint256 _blocknumber, uint256 _tableId) external returns(address[] players, uint256 amount);
 
     /**
-     * @notice gets the non empty(winning) boxes for a round
-     * @param   _blocknumber the block height of the round
-     * @return returns the boxes encoded in an uint16 at lower bits (bitmask to decode)
-     */
-    //function roundResult(uint256 _blocknumber) returns (uint16 awardedBoxes);
-
-    /**
      * @notice update the smart contract's state after a round - callable by anyone
      * @param  _blocknumber the block height of the round
      * @return bool - should return true or revert if it was called succesfully before
@@ -284,12 +277,12 @@ contract Box9 is Ibox9 {
     }
 
     /**
-     * @notice returns the winning boxes by index
+     * @notice returns the winning boxes by blockhash
      * @param  _blockhash - the blockhash to decode
-     * @return uint8[3] - returns three winning boxes by index (first is golden)
+     * @return uint8[3] - returns three winning boxes by box index (first is golden)
      */
     function roundResult(uint256 _blockhash)
-        public
+        internal
         pure
         returns (uint8[3] result)
     {
@@ -317,6 +310,36 @@ contract Box9 is Ibox9 {
         }
 
         return result;
+    }
+
+    /**
+     * @notice returns the winning boxes by block height
+     * @param  _round - block height
+     * @return uint8[3] - returns three winning boxes by box index (first is golden)
+     */
+    function _winningBoxes(uint256 _round)
+        internal
+        view
+        returns (uint8[3] result)
+    {
+        uint256 blockhash;
+        Round storage r = roundInfo[_round];
+        blockhash = r.result;
+        require(blockhash != 0);
+        return (roundResult(blockhash));
+    }
+
+    /**
+     * @notice returns the winning boxes by block height
+     * @param  _round - block height
+     * @return uint8[3] - returns three winning boxes by box index (first is golden)
+     */
+    function winningBoxes(uint256 _round)
+        external
+        view
+        returns (uint8[3] result)
+    {
+        return _winningBoxes(_round);
     }
 
     /**
