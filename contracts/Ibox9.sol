@@ -99,26 +99,28 @@ interface Ibox9 {
     /**
      * @notice update the smart contract's state after a round - callable by anyone
      * @param  _blocknumber the block height of the round
-     * @return bool - should return true or revert if it was called succesfully before
+     * @return uint256 - returns the blockhash or revert if it was called succesfully before
      */
-    function giveReward(uint256 _blocknumber) external returns (bool result);
+    function arrangePayouts(uint256 _blocknumber)
+        external
+        returns (uint256 result);
 
     /**
-     * @notice shows the data of current rewards for a refferer
+     * @notice returns stastics of bonuses for a refferer
      * @param _referrer  - address of the referrer
      * @return address[], uint256[] - returns the referee addresses and corresponding total amount of coins
      */
-    function showReferralRewards(address _referrer)
+    function showReferralBonuses(address _referrer)
         external
         view
-        returns (address[] referrees, uint256[] totalRewards);
+        returns (address[] referrees, uint256[] totalBonus);
 
     /**
-     * @notice reward info
+     * @notice bonus info
      * @param  _referree - the address of referee
-     * @return address, uint256 - returns the referrer address and total rewards given to him
+     * @return address, uint256 - returns the referrer address and total bonuses given to him
      */
-    function referralsGiven(address _referree)
+    function bonusGiven(address _referree)
         external
         view
         returns (address referrer, uint256 amount);

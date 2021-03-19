@@ -58,7 +58,7 @@ contract Box9 is Ibox9 {
         uint256 round;
         address[] players;
         uint16[] choices;
-        bool dealt;
+        bool closed;
     }
 
     struct Betting {
@@ -72,7 +72,7 @@ contract Box9 is Ibox9 {
     /* mappings */
     mapping(address => Player) private playerInfo;
     mapping(uint256 => Round) private roundInfo;
-    mapping(uint256 => Table) private tableInfo;
+    mapping(uint256 => mapping(uint256 => Table)) private tableInfo; /* first uint is round, second is table index */
     mapping(uint256 => Betting) private betInfo;
 
     /* events */
@@ -169,14 +169,6 @@ contract Box9 is Ibox9 {
     }
 
     /**
-     * @notice returns total coins in pool for a round
-     * @param  _blocknumber - the block height of the round
-     * @param  _tableId - the table id
-     * @return uint256 , total coins in pool for this round
-     */
-    //function poolTotal(uint256 _blocknumber, uint256 _tableId) external view returns (uint256 total);
-
-    /**
      * @notice returns general data for a player
      * @param  _player address
      * @return address - refferer's address
@@ -261,42 +253,68 @@ contract Box9 is Ibox9 {
     //function currentPlayers(uint256 _blocknumber, uint256 _tableId) external returns(address[] players, uint256 amount);
 
     /**
+     * @notice returns total coins in pool for a round
+     * @param  _blocknumber - the block height of the round
+     * @param  _tableId - the table id
+     * @return uint256 , total coins in pool for this round
+     */
+    //function poolTotal(uint256 _blocknumber, uint256 _tableId) external view returns (uint256 total);
+
+    /**
      * @notice update the smart contract's state after a round - callable by anyone
      * @param  _blocknumber the block height of the round
-     * @return bool - should return true or revert if it was called succesfully before
+     *  @return uint256 - returns the blockhash or revert if it was called succesfully before
      */
-    //function giveReward(uint256 _blocknumber) public returns (bool result);
+    function arrangePayouts(uint256 _blocknumber)
+        external
+        returns (uint256 result)
+    {
+        /* necessary checks */
+        require(_blocknumber < block.number);
+        require(_blocknumber.mod(10) == 0);
+        Round storage r = roundInfo[_blocknumber];
+        require(r.result == 0);
+
+        result = uint256(block.blockhash(_blocknumber));
+
+        /* if result is zero something is very wrong
+         * 256 blocks passed and noone triggered this function
+         * raise status for fix
+         */
+        if (result != 0) {
+            r.result = result;
+        }
+        return result;
+    }
 
     /**
      * @notice shows the data of current rewards for a refferer
      * @param _referrer  - address of the referrer
      * @return address[], uint256[] - returns the referee addresses and corresponding total amount of coins
      */
-    function showReferralRewards(address _referrer)
+    function showReferralBonuses(address _referrer)
         external
         view
         isPlayer(_referrer)
-        returns (address[] referrees, uint256[] totalRewards)
+        returns (address[] referrees, uint256[] totalBonus)
     {
         Player memory pl = playerInfo[_referrer];
         referrees = pl.referrees;
         for (uint256 i = 0; i < referrees.length; i++) {
             Player memory ref = playerInfo[referrees[i]];
-            totalRewards[i] =
-                (ref.totalBets * referralReward) /
-                (10**precision);
+            totalBonus[i] = (ref.totalBets * referralReward) / (10**precision);
             delete ref;
         }
 
-        return (referrees, totalRewards);
+        return (referrees, totalBonus);
     }
 
     /**
-     * @notice reward info
+     * @notice bonus info
      * @param  _referree - the address of referee
      * @return address, uint256 - returns the referrer address and total rewards given to referrer
      */
-    function referralsGiven(address _referree)
+    function bonusGiven(address _referree)
         external
         view
         isPlayer(_referree)
