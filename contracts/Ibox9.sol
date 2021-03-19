@@ -20,9 +20,13 @@ interface Ibox9 {
     /**
      * @notice withdraws all profits to cold wallet
      * callable only by admin
-     * @return uint256 - the profits
+     * @param  _amount - the amount. If zero then withdraw the full balance
+     * @return uint256 - the withdrawn profits
      */
-    function withdrawProfits() external payable returns (uint256 profits);
+    function withdrawProfits(uint256 _amount)
+        external
+        payable
+        returns (uint256 profits);
 
     /**
      * @notice user must register a referrer first
@@ -144,4 +148,5 @@ interface Ibox9 {
     event DepositEvent(address player, uint256 amount);
     event WithdrawEvent(address player, address destination, uint256 amount);
     event BetEvent(uint256 BettingId, uint256 amount);
+    event WithdrawProfitsEvent(uint256 profits);
 }

@@ -10,6 +10,7 @@ contract Box9 is Ibox9 {
 
     address admin;
     address houseWallet;
+    uint256 houseVault;
     uint256[] tables;
     uint256 nextBet;
     uint256 constant precision = 3; /* decimal places for mantissa */
@@ -79,6 +80,7 @@ contract Box9 is Ibox9 {
     event DepositEvent(address player, uint256 amount);
     event WithdrawEvent(address player, address destination, uint256 amount);
     event BetEvent(uint256 BettingId, uint256 amount);
+    event WithdrawProfitsEvent(uint256 profits);
 
     modifier isAdmin() {
         assert(msg.sender == admin);
@@ -142,9 +144,29 @@ contract Box9 is Ibox9 {
     /**
      * @notice withdraws all profits to cold wallet
      * callable only by admin
-     * @return uint256 - the profits
+     * @param  _amount - the amount. If zero then withdraw the full balance
+     * @return uint256 - the withdrawn profits
      */
-    //function withdrawProfits() external payable returns(uint256 profits);
+    function withdrawProfits(uint256 _amount)
+        external
+        payable
+        isAdmin()
+        returns (uint256 profits)
+    {
+        require(houseVault > 0);
+        if (_amount == 0) {
+            profits = houseVault;
+        } else {
+            require(_amount <= houseVault);
+            profits = _amount;
+        }
+
+        houseWallet.transfer(profits);
+        houseVault = houseVault.sub(profits);
+        emit WithdrawProfitsEvent(profits);
+
+        return profits;
+    }
 
     /**
      * @notice returns total coins in pool for a round
