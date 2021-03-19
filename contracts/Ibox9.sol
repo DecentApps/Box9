@@ -49,13 +49,13 @@ interface Ibox9 {
         returns (uint256 total);
 
     /**
-     * @notice returns useful data for a player
+     * @notice returns general data for a player
      * @param  _player address
      * @return address - refferer's address
      * @return uint256 - balance
      * @return uint256 - commissions
      */
-    function playerInfo(address _player)
+    function getPlayerInfo(address _player)
         external
         view
         returns (

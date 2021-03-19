@@ -177,13 +177,25 @@ contract Box9 is Ibox9 {
     //function poolTotal(uint256 _blocknumber, uint256 _tableId) external view returns (uint256 total);
 
     /**
-     * @notice returns useful data for a player
+     * @notice returns general data for a player
      * @param  _player address
      * @return address - refferer's address
      * @return uint256 - balance
      * @return uint256 - commissions
      */
-    //function playerInfo(address _player) external view returns(address referrer, uint256 balance, uint256 commissions);
+    function getPlayerInfo(address _player)
+        external
+        view
+        returns (
+            address referrer,
+            uint256 balance,
+            uint256 commissions
+        )
+    {
+        Player storage pl = playerInfo[_player];
+
+        return (pl.referrer, pl.balance, pl.rewards);
+    }
 
     /**
      * @notice player chooses boxes (6 maximum)
@@ -202,7 +214,7 @@ contract Box9 is Ibox9 {
         require(quantity != 0);
 
         /* check if table exists */
-        require(_tableId < tables.length);
+        require(_tableId < tables.length.sub(1));
         uint256 boxprice = tables[_tableId];
         require(boxprice > 0);
 
