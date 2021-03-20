@@ -15,7 +15,7 @@ interface Ibox9 {
      * @param  _box_price - price in coins per box
      * @return uint256 - returns the table id
      */
-    function addNewTable(uint256 _box_price) external returns (uint256 tableId);
+    function addNewTable(uint256 _boxPrice) external returns (uint256 tableId);
 
     /**
      * @notice withdraws all profits to cold wallet
@@ -149,6 +149,6 @@ interface Ibox9 {
     event RegisterEvent(address player, address referrer);
     event DepositEvent(address player, uint256 amount);
     event WithdrawEvent(address player, address destination, uint256 amount);
-    event BetEvent(uint256 BettingId, uint256 amount);
+    event BetEvent(uint256 bettingId, uint256 amount);
     event WithdrawProfitsEvent(uint256 profits);
 }

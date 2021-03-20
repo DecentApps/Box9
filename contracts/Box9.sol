@@ -8,17 +8,17 @@ import "./SafeMath.sol";
 contract Box9 is Ibox9 {
     using SafeMath for uint256;
 
-    address admin;
-    address houseWallet;
-    uint256 houseVault;
-    uint256[] tables;
-    uint256 nextBet;
-    uint256 constant precision = 3; /* decimal places for mantissa */
-    uint256 constant referralReward = 10;
-    uint256 constant goldReward = 700;
-    uint256 constant silverReward = 125;
-    uint256 constant session = 10; /* blocks between spins */
-    address constant zeroAddress = address(0x0);
+    address private admin;
+    address private houseWallet;
+    uint256 private houseVault;
+    uint256[] private tables;
+    uint256 private nextBet;
+    uint256 private constant precision = 3; /* decimal places for mantissa */
+    uint256 private constant referralReward = 10;
+    uint256 private constant goldReward = 700;
+    uint256 private constant silverReward = 125;
+    uint256 private constant session = 10; /* blocks between spins */
+    address private constant zeroAddress = address(0x0);
 
     //function Box9(address _houseWallet) public {
     function Box9() public {
@@ -79,7 +79,7 @@ contract Box9 is Ibox9 {
     event RegisterEvent(address player, address referrer);
     event DepositEvent(address player, uint256 amount);
     event WithdrawEvent(address player, address destination, uint256 amount);
-    event BetEvent(uint256 BettingId, uint256 amount);
+    event BetEvent(uint256 bettingId, uint256 amount);
     event WithdrawProfitsEvent(uint256 profits);
 
     modifier isAdmin() {
@@ -105,13 +105,13 @@ contract Box9 is Ibox9 {
      * @param  _box_price - price in coins per box
      * @return uint256 - returns the table id
      */
-    function addNewTable(uint256 _box_price)
+    function addNewTable(uint256 _boxPrice)
         external
         isAdmin()
         returns (uint256 tableId)
     {
-        require(_box_price > 0);
-        tables.push(_box_price);
+        require(_boxPrice > 0);
+        tables.push(_boxPrice);
         return (tables.length - 1);
     }
 
@@ -446,10 +446,10 @@ contract Box9 is Ibox9 {
 
     /**
      * @notice checks the 16bit number of box choice
-     * @param _encoded_number - the choice payload
+     * @param _encodedNumber - the choice payload
      * @return uint16[] - returns the number of choiced boxes, zero if invalid
      */
-    function checkValidity(uint16 _encoded_number)
+    function checkValidity(uint16 _encodedNumber)
         internal
         pure
         returns (uint8 quantity)
@@ -458,7 +458,7 @@ contract Box9 is Ibox9 {
         uint16 mask = 0x8000; /* mask to set first bit */
         /* 7 most significant bits must be zero */
         for (uint8 i = 0; i < 7; i++) {
-            if (_encoded_number & mask != 0) {
+            if (_encodedNumber & mask != 0) {
                 return 0;
             }
             mask = mask >> 1; /* next bit check */
@@ -466,7 +466,7 @@ contract Box9 is Ibox9 {
 
         /* count chosen boxes */
         for (i = 0; i < 9; i++) {
-            if (_encoded_number & mask != 0) {
+            if (_encodedNumber & mask != 0) {
                 quantity++;
             }
             mask = mask >> 1; /* next bit check */
