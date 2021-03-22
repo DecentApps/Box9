@@ -45,9 +45,8 @@ contract Box9 is Ibox9 {
     }
 
     struct Round {
-        //mapping by blockHeight;
         uint256 block;
-        uint256 result; // blockhash
+        uint256 result; /* blockhash */
     }
 
     struct Table {
@@ -57,7 +56,7 @@ contract Box9 is Ibox9 {
         uint8[3] winningNumbers; // sorted asc
         address[] players;
         uint256 pot;
-        bool closed;
+        bool open;
         uint256[] betId; /* all bets for this table */
     }
 
@@ -71,7 +70,7 @@ contract Box9 is Ibox9 {
 
     /* mappings */
     mapping(address => Player) private playerInfo;
-    mapping(uint256 => Round) private roundInfo;
+    mapping(uint256 => Round) private roundInfo; /* mapping by blockHeight; */
     mapping(uint256 => mapping(uint256 => Table)) private tableInfo; /* first uint is round, second is table index */
     mapping(uint256 => Betting) private betInfo;
 
@@ -193,6 +192,7 @@ contract Box9 is Ibox9 {
     /**
      * @notice player chooses boxes (6 maximum)
      * Transaction reverts if not enough coins in his account
+     * Also, bettor opens(initiates) the table if he is the first bettor
      * @param  _chosenBoxes - 9 lowest bits show the boxes he has chosen
      * @param  _tableId - the table
      * @return uint256 - the next blockheigh for the box spin
@@ -216,13 +216,21 @@ contract Box9 is Ibox9 {
         uint256 amount = quantity * boxprice;
         require(pl.balance >= amount);
 
-        /* decrease balance */
-        pl.balance = pl.balance.sub(amount);
-
         /* get next round */
         round = getNextRound();
 
-        /* create bet struct , update round info */
+        /* use bonus first */
+        uint256 minR = pl.rewards;
+        if (minR > amount) {
+            minR = amount;
+        }
+        pl.rewards = pl.rewards.sub(minR);
+        pl.balance = pl.balance.add(minR);
+
+        /* decrease balance */
+        pl.balance = pl.balance.sub(amount);
+
+        /* create bet struct */
         Betting storage bet = betInfo[nextBet];
         bet.id = nextBet;
         nextBet = nextBet.add(1);
@@ -231,13 +239,30 @@ contract Box9 is Ibox9 {
         bet.tableIndex = _tableId;
         bet.boxChoice = _chosenBoxes;
 
-        /* change implementation
-        Round storage r = roundInfo[round];
-        r.block = round;
-        r.betId.push(bet.id);
-        r.pot[_tableId] = r.pot[_tableId].add(amount);
-*/
+        Table storage tbl = tableInfo[round][_tableId];
+        if (!tbl.open) {
+            /* open the table if first bettor */
+            tbl.open = true;
+            tbl.boxPrice = tables[_tableId];
+            tbl.round = round;
+        }
+
+        /* update table info */
+        tbl.players.push(msg.sender);
+        tbl.betId.push(bet.id);
+        tbl.pot = tbl.pot.add(amount);
+
         pl.totalBets = pl.totalBets.add(amount);
+
+        /* give the bonus to referrer */
+        uint256 bonus = amount.mul(referralReward);
+        bonus = bonus.div(10**precision);
+        if (pl.referrer == houseWallet) {
+            houseVault = houseVault.add(bonus);
+        } else {
+            Player storage ref = playerInfo[pl.referrer];
+            ref.rewards.add(bonus);
+        }
 
         /* emit event */
         emit BetEvent(bet.id, amount);
