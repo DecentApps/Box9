@@ -251,14 +251,17 @@ contract Box9 is Ibox9 {
      * @return address[] - list of all players for the round
      * @return amount - how many coins are in the pot
      */
-    function currentPlayers(uint256 _blocknumber, uint256 _tableId) external returns(address[] players, uint256 amount){
-        require(_tableId<tables.length);
+    function currentPlayers(uint256 _blocknumber, uint256 _tableId)
+        external
+        returns (address[] players, uint256 amount)
+    {
+        require(_tableId < tables.length);
         Table storage tbl = tableInfo[_blocknumber][_tableId];
-        
+
         players = tbl.players;
         amount = tbl.pot;
-        
-        return(players, amount);
+
+        return (players, amount);
     }
 
     /**
@@ -267,7 +270,16 @@ contract Box9 is Ibox9 {
      * @param  _tableId - the table id
      * @return uint256 , total coins in pool for this round
      */
-    //function poolTotal(uint256 _blocknumber, uint256 _tableId) external view returns (uint256 total);
+    function poolTotal(uint256 _blocknumber, uint256 _tableId)
+        external
+        view
+        returns (uint256 total)
+    {
+        require(_tableId < tables.length);
+        Table storage tbl = tableInfo[_blocknumber][_tableId];
+
+        return tbl.pot;
+    }
 
     /**
      * @notice update the smart contract's state after a round - callable by anyone
