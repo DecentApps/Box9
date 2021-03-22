@@ -87,6 +87,24 @@ interface Ibox9 {
         returns (address[] players, uint256 amount);
 
     /**
+     * @notice returns all information about a bet
+     * @param  _betId - id of the bet
+     * @return address - the players address
+     * @return uint256 - the round number
+     * @return uint256 - the table index
+     * @return uint16 - the chosen numbers (encoded)
+     */
+    function getBetInfo(uint256 _betId)
+        external
+        view
+        returns (
+            address player,
+            uint256 round,
+            uint256 tableIndex,
+            uint16 chosenBoxes
+        );
+
+    /**
      * @notice returns the winning boxes by block height
      * @param  _round - block height
      * @return uint8[3] - returns three winning boxes by box index (first is golden)

@@ -22,7 +22,7 @@ contract Box9 is Ibox9 {
 
     //function Box9(address _houseWallet) public {
     function Box9() public {
-        address _houseWallet = msg.sender; /* set to cunstructor arg later*/
+        address _houseWallet = msg.sender; /* set to constructor arg later*/
         admin = msg.sender;
         houseWallet = _houseWallet;
         nextBet = 1;
@@ -231,11 +231,12 @@ contract Box9 is Ibox9 {
         bet.tableIndex = _tableId;
         bet.boxChoice = _chosenBoxes;
 
+        /* change implementation
         Round storage r = roundInfo[round];
         r.block = round;
         r.betId.push(bet.id);
         r.pot[_tableId] = r.pot[_tableId].add(amount);
-
+*/
         pl.totalBets = pl.totalBets.add(amount);
 
         /* emit event */
@@ -416,6 +417,36 @@ contract Box9 is Ibox9 {
         }
 
         return result;
+    }
+
+    /**
+     * @notice returns all information about a bet
+     * @param  _betId - id of the bet
+     * @return address - the players address
+     * @return uint256 - the round number
+     * @return uint256 - the table index
+     * @return uint16 - the chosen numbers (encoded)
+     */
+    function getBetInfo(uint256 _betId)
+        external
+        view
+        returns (
+            address player,
+            uint256 round,
+            uint256 tableIndex,
+            uint16 chosenBoxes
+        )
+    {
+        Betting storage bet = betInfo[_betId];
+        /* check if bet exists */
+        require(_betId == bet.id);
+
+        player = bet.player;
+        round = bet.round;
+        tableIndex = bet.tableIndex;
+        chosenBoxes = bet.boxChoice;
+
+        return (player, round, tableIndex, chosenBoxes);
     }
 
     /**
