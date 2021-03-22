@@ -1,5 +1,6 @@
 {
   "extends": "solhint:default",
+  "plugins": [],
   "rules": {
     "use-forbidden-name": "error",
     "imports-on-top": "error",

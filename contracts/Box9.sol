@@ -48,17 +48,17 @@ contract Box9 is Ibox9 {
         //mapping by blockHeight;
         uint256 block;
         uint256 result; // blockhash
-        uint256[] pot; //for each table
-        uint256[] betId; /* all bets for this round */
     }
 
     struct Table {
         uint256 id;
         uint256 boxPrice;
         uint256 round;
+        uint8[3] winningNumbers; // sorted asc
         address[] players;
-        uint16[] choices;
+        uint256 pot;
         bool closed;
+        uint256[] betId; /* all bets for this table */
     }
 
     struct Betting {
@@ -102,7 +102,7 @@ contract Box9 is Ibox9 {
     /**
      * @notice adds new table, the only difference is box price
      * only contract owner can add a table
-     * @param  _box_price - price in coins per box
+     * @param  _boxPrice - price in coins per box
      * @return uint256 - returns the table id
      */
     function addNewTable(uint256 _boxPrice)
@@ -161,8 +161,9 @@ contract Box9 is Ibox9 {
             profits = _amount;
         }
 
-        houseWallet.transfer(profits);
         houseVault = houseVault.sub(profits);
+        houseWallet.transfer(profits);
+
         emit WithdrawProfitsEvent(profits);
 
         return profits;
@@ -248,9 +249,17 @@ contract Box9 is Ibox9 {
      * @param   _blocknumber the block height of the round
      * @param  _tableId - the table id
      * @return address[] - list of all players for the round
-     * @return amount[] - amount in coins for each player
+     * @return amount - how many coins are in the pot
      */
-    //function currentPlayers(uint256 _blocknumber, uint256 _tableId) external returns(address[] players, uint256 amount);
+    function currentPlayers(uint256 _blocknumber, uint256 _tableId) external returns(address[] players, uint256 amount){
+        require(_tableId<tables.length);
+        Table storage tbl = tableInfo[_blocknumber][_tableId];
+        
+        players = tbl.players;
+        amount = tbl.pot;
+        
+        return(players, amount);
+    }
 
     /**
      * @notice returns total coins in pool for a round

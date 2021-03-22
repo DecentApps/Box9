@@ -12,7 +12,7 @@ interface Ibox9 {
     /**
      * @notice adds new table, the only difference is box price
      * only contract owner can add a table
-     * @param  _box_price - price in coins per box
+     * @param  _boxPrice - price in coins per box
      * @return uint256 - returns the table id
      */
     function addNewTable(uint256 _boxPrice) external returns (uint256 tableId);
