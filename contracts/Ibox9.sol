@@ -117,7 +117,8 @@ interface Ibox9 {
     /**
      * @notice returns stastics of bonuses for a refferer
      * @param _referrer  - address of the referrer
-     * @return address[], uint256[] - returns the referee addresses and corresponding total amount of coins
+     * @return address[], uint256[] - returns the referee addresses
+     * @return uint256[] - returns the corresponding total amount of coins
      */
     function showReferralBonuses(address _referrer)
         external
@@ -153,6 +154,17 @@ interface Ibox9 {
      * @return uint256[] - returns the table's box prices
      */
     function showTables() external view returns (uint256[] tables);
+
+    /**
+     * @notice returns how many bettors and coins on a specific number for the next round
+     * @param  _number - box number
+     * @param  _tableId - table index
+     * @return uint256 - the number of bettors
+     * @return uint256 - coins amount
+     */
+    function getNumberState(uint8 _number, uint256 _tableId)
+        external
+        returns (uint256 totalPlayers, uint256 totalBets);
 
     /* Events */
     event RegisterEvent(address player, address referrer);

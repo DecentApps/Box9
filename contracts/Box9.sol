@@ -412,6 +412,28 @@ contract Box9 is Ibox9 {
     }
 
     /**
+     * @notice returns how many bettors and coins exist on a specific number for the next round
+     * @param  _number - box number
+     * @param  _tableId - table index
+     * @return uint256 - the number of bettors
+     * @return uint256 - coins amount
+     */
+    function getNumberState(uint8 _number, uint256 _tableId)
+        external
+        returns (uint256 totalPlayers, uint256 totalBets)
+    {
+        require(_tableId < tables.length);
+        require(_number < 9);
+
+        uint256 round = getNextRound();
+        Table storage tbl = tableInfo[round][_tableId];
+        totalPlayers = tbl.boxesOnNumber[uint256(_number)];
+        totalBets = totalPlayers.mul(tbl.boxPrice);
+
+        return (totalPlayers, totalBets);
+    }
+
+    /**
      * @notice returns the winning boxes by blockhash
      * @param  _blockhash - the blockhash to decode
      * @return uint8[3] - returns three winning boxes by box index (first is golden)
