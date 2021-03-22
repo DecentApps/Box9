@@ -115,15 +115,6 @@ interface Ibox9 {
         returns (uint8[3] result);
 
     /**
-     * @notice update the smart contract's state after a round - callable by anyone
-     * @param  _blocknumber the block height of the round
-     * @return uint256 - returns the blockhash or revert if it was called succesfully before
-     */
-    function arrangePayouts(uint256 _blocknumber)
-        external
-        returns (uint256 result);
-
-    /**
      * @notice returns stastics of bonuses for a refferer
      * @param _referrer  - address of the referrer
      * @return address[], uint256[] - returns the referee addresses and corresponding total amount of coins
@@ -169,4 +160,5 @@ interface Ibox9 {
     event WithdrawEvent(address player, address destination, uint256 amount);
     event BetEvent(uint256 bettingId, uint256 amount);
     event WithdrawProfitsEvent(uint256 profits);
+    event UpdateRoundState(uint256 blocknumber, uint256 blockhash);
 }

@@ -45,7 +45,7 @@ contract Box9 is Ibox9 {
     }
 
     struct Round {
-        uint256 block;
+        bool requireFix;
         uint256 result; /* blockhash */
     }
 
@@ -80,6 +80,7 @@ contract Box9 is Ibox9 {
     event WithdrawEvent(address player, address destination, uint256 amount);
     event BetEvent(uint256 bettingId, uint256 amount);
     event WithdrawProfitsEvent(uint256 profits);
+    event UpdateRoundState(uint256 blocknumber, uint256 blockhash);
 
     modifier isAdmin() {
         assert(msg.sender == admin);
@@ -192,7 +193,7 @@ contract Box9 is Ibox9 {
     /**
      * @notice player chooses boxes (6 maximum)
      * Transaction reverts if not enough coins in his account
-     * Also, bettor opens(initiates) the table if he is the first bettor
+     * Also, bettor opens(initiates) teh table if he is teh first bettor
      * @param  _chosenBoxes - 9 lowest bits show the boxes he has chosen
      * @param  _tableId - the table
      * @return uint256 - the next blockheigh for the box spin
@@ -305,33 +306,6 @@ contract Box9 is Ibox9 {
         Table storage tbl = tableInfo[_blocknumber][_tableId];
 
         return tbl.pot;
-    }
-
-    /**
-     * @notice update the smart contract's state after a round - callable by anyone
-     * @param  _blocknumber the block height of the round
-     *  @return uint256 - returns the blockhash or revert if it was called succesfully before
-     */
-    function arrangePayouts(uint256 _blocknumber)
-        external
-        returns (uint256 result)
-    {
-        /* necessary checks */
-        require(_blocknumber < block.number);
-        require(_blocknumber.mod(10) == 0);
-        Round storage r = roundInfo[_blocknumber];
-        require(r.result == 0);
-
-        result = uint256(block.blockhash(_blocknumber));
-
-        /* if result is zero something is very wrong
-         * 256 blocks passed and noone triggered this function
-         * raise status for fix
-         */
-        if (result != 0) {
-            r.result = result;
-        }
-        return result;
     }
 
     /**
@@ -555,5 +529,59 @@ contract Box9 is Ibox9 {
         }
 
         return quantity;
+    }
+
+    /**
+     * @notice update the smart contract's state after a round - callable by anyone
+     * @param  _blocknumber the block height of the round
+     * @return uint256 - returns the blockhash or revert if it was called succesfully before
+     */
+    function arrangeRound(uint256 _blocknumber)
+        external
+        returns (uint256 result)
+    {
+        /* necessary checks */
+        require(_blocknumber < block.number);
+        require(_blocknumber.mod(10) == 0);
+        Round storage r = roundInfo[_blocknumber];
+        require(r.result == 0);
+
+        result = uint256(block.blockhash(_blocknumber));
+
+        /* if the blockhash is zero something is very wrong
+         * 256 blocks passed and noone has triggered this function
+         * raise status to require fix
+         */
+        if (result != 0) {
+            r.result = result;
+        } else {
+            r.requireFix = true;
+        }
+        return result;
+    }
+
+    /**
+     * @notice update the round state if not updated on time - admin only
+     * @param  _blocknumber the block height of the round
+     * @param  _blockhash the correct blockhash
+     * @return bool - returns true on success
+     */
+    function fixRound(uint256 _blocknumber, uint256 _blockhash)
+        external
+        isAdmin()
+        returns (bool result)
+    {
+        /* necessary checks */
+        require(r.requireFix);
+        require(_blocknumber < block.number);
+        require(_blocknumber.mod(10) == 0);
+        require(r.result == 0);
+        Round storage r = roundInfo[_blocknumber];
+
+        r.result = _blockhash;
+        r.requireFix = false;
+        emit UpdateRoundState(_blocknumber, _blockhash);
+
+        return true;
     }
 }
