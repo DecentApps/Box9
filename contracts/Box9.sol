@@ -53,7 +53,9 @@ contract Box9 is Ibox9 {
         uint256 id;
         uint256 boxPrice;
         uint256 round;
-        uint8[3] winningNumbers; // sorted asc
+        uint8[3] winningNumbers; /* gold, silver1, silver2 */
+        uint256[3] winningAmount;
+        uint256[9] boxesOnNumber;
         address[] players;
         uint256 pot;
         bool open;
@@ -240,18 +242,14 @@ contract Box9 is Ibox9 {
         bet.tableIndex = _tableId;
         bet.boxChoice = _chosenBoxes;
 
-        Table storage tbl = tableInfo[round][_tableId];
-        if (!tbl.open) {
-            /* open the table if first bettor */
-            tbl.open = true;
-            tbl.boxPrice = tables[_tableId];
-            tbl.round = round;
-        }
-
-        /* update table info */
-        tbl.players.push(msg.sender);
-        tbl.betId.push(bet.id);
-        tbl.pot = tbl.pot.add(amount);
+        _updateTableOnBet(
+            msg.sender,
+            round,
+            _chosenBoxes,
+            _tableId,
+            bet.id,
+            amount
+        );
 
         pl.totalBets = pl.totalBets.add(amount);
 
@@ -269,6 +267,37 @@ contract Box9 is Ibox9 {
         emit BetEvent(bet.id, amount);
 
         return round;
+    }
+
+    /* internal use, only for chooseBoxes() to avoid stack too deep error */
+    function _updateTableOnBet(
+        address _bettor,
+        uint256 _round,
+        uint16 _choice,
+        uint256 _tableId,
+        uint256 _betId,
+        uint256 _amount
+    ) internal {
+        Table storage tbl = tableInfo[_round][_tableId];
+        if (!tbl.open) {
+            /* open the table if first bettor */
+            tbl.open = true;
+            tbl.boxPrice = tables[_tableId];
+            tbl.round = _round;
+        }
+
+        /* update table info */
+        tbl.players.push(_bettor);
+        tbl.betId.push(_betId);
+        tbl.pot = tbl.pot.add(_amount);
+
+        uint16 mask = 1;
+        for (uint256 i = 0; i < 9; i++) {
+            if (_choice & mask != 0) {
+                tbl.boxesOnNumber[i] = tbl.boxesOnNumber[i].add(1);
+            }
+            mask << 1;
+        }
     }
 
     /**
