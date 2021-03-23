@@ -14,10 +14,13 @@ contract Box9 is Ibox9 {
     uint256[] private tables;
     uint256 private nextBet;
     uint256 private constant precision = 3; /* decimal places for mantissa */
+    uint256 private constant rounding = 2; /* round down the number for winnings for user friendliness*/
     uint256 private constant referralReward = 10;
-    uint256 private constant goldReward = 700;
+    uint256 private constant goldReward = 650;
     uint256 private constant silverReward = 125;
+    uint256 private constant jackpotReward = 50;
     uint256 private constant session = 10; /* blocks between spins */
+    uint256 private constant jackpotSession = 10000; /* blocks between jackpots */
     address private constant zeroAddress = address(0x0);
 
     //function Box9(address _houseWallet) public {
@@ -42,6 +45,7 @@ contract Box9 is Ibox9 {
         uint256 rewards;
         uint256[] betIds;
         uint256 totalBets;
+        uint256 jackpotKeys;
     }
 
     struct Round {
@@ -70,9 +74,14 @@ contract Box9 is Ibox9 {
         uint16 boxChoice;
     }
 
+    struct Jackpot {
+        uint256 pot;
+    }
+
     /* mappings */
     mapping(address => Player) private playerInfo;
     mapping(uint256 => Round) private roundInfo; /* mapping by blockHeight; */
+    mapping(uint256 => Jackpot) private jackpotInfo; /* mapping by blockHeight; */
     mapping(uint256 => mapping(uint256 => Table)) private tableInfo; /* first uint is round, second is table index */
     mapping(uint256 => Betting) private betInfo;
 
@@ -82,7 +91,9 @@ contract Box9 is Ibox9 {
     event WithdrawEvent(address player, address destination, uint256 amount);
     event BetEvent(uint256 bettingId, uint256 amount);
     event WithdrawProfitsEvent(uint256 profits);
-    event UpdateRoundState(uint256 blocknumber, uint256 blockhash);
+
+    event UpdateRoundState(uint256 blocknumber, uint256 hash);
+    event UpdateTableState(uint256 blocknumber, uint256 tableIndex);
 
     modifier isAdmin() {
         assert(msg.sender == admin);
@@ -206,7 +217,7 @@ contract Box9 is Ibox9 {
         returns (uint256 round)
     {
         uint8 quantity;
-        quantity = checkValidity(_chosenBoxes);
+        quantity = _checkValidity(_chosenBoxes);
         require(quantity != 0);
 
         /* check if table exists */
@@ -220,7 +231,7 @@ contract Box9 is Ibox9 {
         require(pl.balance >= amount);
 
         /* get next round */
-        round = getNextRound();
+        round = _getNextRound();
 
         /* use bonus first */
         uint256 minR = pl.rewards;
@@ -425,7 +436,7 @@ contract Box9 is Ibox9 {
         require(_tableId < tables.length);
         require(_number < 9);
 
-        uint256 round = getNextRound();
+        uint256 round = _getNextRound();
         Table storage tbl = tableInfo[round][_tableId];
         totalPlayers = tbl.boxesOnNumber[uint256(_number)];
         totalBets = totalPlayers.mul(tbl.boxPrice);
@@ -438,7 +449,7 @@ contract Box9 is Ibox9 {
      * @param  _blockhash - the blockhash to decode
      * @return uint8[3] - returns three winning boxes by box index (first is golden)
      */
-    function roundResult(uint256 _blockhash)
+    function _roundResult(uint256 _blockhash)
         internal
         pure
         returns (uint8[3] result)
@@ -513,7 +524,7 @@ contract Box9 is Ibox9 {
         Round storage r = roundInfo[_round];
         blockhash = r.result;
         require(blockhash != 0);
-        return (roundResult(blockhash));
+        return (_roundResult(blockhash));
     }
 
     /**
@@ -533,7 +544,7 @@ contract Box9 is Ibox9 {
      * @notice returns block height for next round
      * @return uint256 - the block height of next spin
      */
-    function getNextRound() internal view returns (uint256 blockHeight) {
+    function _getNextRound() internal view returns (uint256 blockHeight) {
         uint256 nextSpin;
         uint256 gap;
 
@@ -547,11 +558,33 @@ contract Box9 is Ibox9 {
     }
 
     /**
+     * @notice returns block height for next jackpot
+     * @param _round - the next jackpot after this round
+     * @return uint256 - the block height of next jackpot
+     */
+    function _getNextJackpotRound(uint256 _round)
+        public
+        pure
+        returns (uint256 blockHeight)
+    {
+        uint256 nextJackpotSpin;
+        uint256 gap;
+
+        nextJackpotSpin = _round;
+        gap = nextJackpotSpin.mod(jackpotSession);
+        if (gap == jackpotSession) {
+            gap = 0;
+        }
+        nextJackpotSpin = nextJackpotSpin.add(jackpotSession - gap);
+        return nextJackpotSpin;
+    }
+
+    /**
      * @notice checks the 16bit number of box choice
      * @param _encodedNumber - the choice payload
      * @return uint16[] - returns the number of choiced boxes, zero if invalid
      */
-    function checkValidity(uint16 _encodedNumber)
+    function _checkValidity(uint16 _encodedNumber)
         internal
         pure
         returns (uint8 quantity)
@@ -623,16 +656,134 @@ contract Box9 is Ibox9 {
         returns (bool result)
     {
         /* necessary checks */
-        require(r.requireFix);
+
         require(_blocknumber < block.number);
         require(_blocknumber.mod(10) == 0);
-        require(r.result == 0);
         Round storage r = roundInfo[_blocknumber];
+        require(r.result == 0);
+        require(r.requireFix);
 
         r.result = _blockhash;
         r.requireFix = false;
         emit UpdateRoundState(_blocknumber, _blockhash);
 
         return true;
+    }
+
+    /**
+     * @notice update table state after a round is updated - callable by anyone
+     * @param  _round the block height of the round
+     * @param  _tableId the block height of the round
+     * @return bool - returns true on success
+     */
+    function arrangeTable(uint256 _round, uint256 _tableId)
+        external
+        returns (bool result)
+    {
+        /* necessary checks */
+        require(_round < block.number);
+        require(_round.mod(10) == 0);
+        Round storage r = roundInfo[_round];
+        /* round must be updated first */
+        require(r.result != 0);
+
+        Table storage tbl = tableInfo[_round][_tableId];
+
+        require(tbl.open == true);
+
+        /* update winning numbers */
+        tbl.winningNumbers = _winningBoxes(_round);
+
+        /* compute and save all rewards awards */
+        uint256 jRound = _getNextJackpotRound(_round);
+
+        Jackpot storage j = jackpotInfo[jRound];
+
+        uint256 capital =
+            (tbl.boxesOnNumber[tbl.winningNumbers[0]] +
+                tbl.boxesOnNumber[tbl.winningNumbers[1]] +
+                tbl.boxesOnNumber[tbl.winningNumbers[2]])
+                .mul(tbl.boxPrice);
+        uint256 remaining = tbl.pot - capital;
+        uint256 roundMask = 8 - rounding; /* ECOC has 8 decimals */
+        uint256 award;
+
+        if (tbl.boxesOnNumber[tbl.winningNumbers[0]] != 0) {
+            award = remaining.mul(goldReward).div(10**precision);
+            tbl.winningAmount[0] = award;
+            tbl.winningAmount[0] = tbl.winningAmount[0].div(
+                tbl.boxesOnNumber[tbl.winningNumbers[0]]
+            ); /* for each gold winner */
+            tbl.winningAmount[0] = _roundNumber(
+                tbl.winningAmount[0],
+                roundMask
+            );
+            tbl.pot = tbl.pot.sub(award);
+        } else {
+            j.pot = j.pot.add(remaining.mul(goldReward).div(10**precision));
+        }
+
+        if (tbl.boxesOnNumber[tbl.winningNumbers[1]] != 0) {
+            award = remaining.mul(silverReward).div(10**precision);
+            tbl.winningAmount[1] = award;
+            tbl.winningAmount[1] = remaining.mul(silverReward).div(
+                10**precision
+            );
+            tbl.winningAmount[1] = tbl.winningAmount[1].div(
+                tbl.boxesOnNumber[tbl.winningNumbers[1]]
+            ); /* for each silver1 winner */
+            tbl.winningAmount[1] = _roundNumber(
+                tbl.winningAmount[1],
+                roundMask
+            );
+            tbl.pot = tbl.pot.sub(award);
+        } else {
+            j.pot = j.pot.add(remaining.mul(silverReward).div(10**precision));
+        }
+
+        if (tbl.boxesOnNumber[tbl.winningNumbers[2]] != 0) {
+            award = remaining.mul(silverReward).div(10**precision);
+            tbl.winningAmount[2] = award;
+            tbl.winningAmount[2] = remaining.mul(silverReward).div(
+                10**precision
+            );
+            tbl.winningAmount[2] = tbl.winningAmount[2].div(
+                tbl.boxesOnNumber[tbl.winningNumbers[2]]
+            ); /* for each silver2 winner */
+            tbl.winningAmount[2] = _roundNumber(
+                tbl.winningAmount[2],
+                roundMask
+            );
+            tbl.pot = tbl.pot.sub(award);
+        } else {
+            j.pot = j.pot.add(remaining.mul(silverReward).div(10**precision));
+        }
+
+        j.pot = j.pot.add(remaining.mul(jackpotReward).div(10**precision));
+        j.pot = _roundNumber(j.pot, roundMask);
+        tbl.pot = tbl.pot.sub(j.pot);
+
+        houseVault = houseVault.add(tbl.pot);
+        tbl.pot = 0;
+        tbl.open = false;
+
+        return result;
+    }
+
+    /**
+     * @notice rounding number by _precision digits
+     * @param  _number - to be rounded
+     * @param  _cut - how many digits to cut
+     * @return uint256 - the _number after rounding
+     */
+    function _roundNumber(uint256 _number, uint256 _cut)
+        internal
+        pure
+        returns (uint256 rounded)
+    {
+        rounded = _number;
+        uint256 mask = 10**_cut;
+        rounded = rounded.div(mask).mul(mask);
+        return rounded;
     }
 }

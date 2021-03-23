@@ -172,5 +172,4 @@ interface Ibox9 {
     event WithdrawEvent(address player, address destination, uint256 amount);
     event BetEvent(uint256 bettingId, uint256 amount);
     event WithdrawProfitsEvent(uint256 profits);
-    event UpdateRoundState(uint256 blocknumber, uint256 blockhash);
 }
