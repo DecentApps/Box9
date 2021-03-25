@@ -73,6 +73,7 @@ contract Box9 is Ibox9 {
         uint256 round;
         uint256 tableIndex;
         uint16 boxChoice;
+        bool claimed;
     }
 
     struct Jackpot {
@@ -99,9 +100,16 @@ contract Box9 is Ibox9 {
     event WithdrawEvent(address player, address destination, uint256 amount);
     event BetEvent(uint256 bettingId, uint256 amount);
     event WithdrawProfitsEvent(uint256 profits);
+    event ClaimReward(
+        address winner,
+        uint256 round,
+        uint256 table,
+        uint256 amount
+    );
 
     event UpdateRoundState(uint256 blocknumber, uint256 hash);
     event UpdateTableState(uint256 blocknumber, uint256 tableIndex);
+    event UpdateLastWinners(uint256 winners, uint256 totalAwards);
 
     modifier isAdmin() {
         assert(msg.sender == admin);
@@ -820,5 +828,37 @@ contract Box9 is Ibox9 {
         /* get all winners for the table */
         /* save in structure */
         /* return how many and how much*/
+    }
+
+    /**
+     * @notice give winnings for a bet to the player - can be triggered only by player
+     * @param _betId - the bet id
+     * @return uint256 - returns the winning amount
+     */
+    function claimWinnings(uint256 _betId) external returns (uint256 amount) {
+        Betting storage bet = betInfo[_betId];
+        require(!bet.claimed);
+        require(bet.player == msg.sender);
+        require(bet.round < block.number);
+
+        Table memory tbl = tableInfo[bet.round][bet.tableIndex];
+        /* extra check, if betid exists on table */
+        // require _numberExists(tbl.betId, bet.id);
+
+        /* compute the winning amount */
+        uint256 mask;
+        for (uint256 w = 0; w < 3; w++) {
+            mask = 2**tbl.winningNumbers[w];
+            if (bet.boxChoice & mask != 0) {
+                amount = amount.add(tbl.winningAmount[w]);
+            }
+        }
+
+        bet.claimed = true;
+        Player storage pl = playerInfo[msg.sender];
+        pl.balance = pl.balance.add(amount);
+
+        emit ClaimReward(bet.player, bet.round, bet.tableIndex, amount);
+        return amount;
     }
 }

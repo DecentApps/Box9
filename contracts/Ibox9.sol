@@ -136,6 +136,13 @@ interface Ibox9 {
         returns (address referrer, uint256 amount);
 
     /**
+     * @notice give winnings for a bet to the player - can be triggered only by player
+     * @param _betId - the bet id
+     * @return uint256 - returns the claimed amount
+     */
+    function claimWinnings(uint256 _betId) external returns (uint256 amount);
+
+    /**
      * @notice deposit ECOC
      * revert on non-register user
      */
@@ -172,4 +179,10 @@ interface Ibox9 {
     event WithdrawEvent(address player, address destination, uint256 amount);
     event BetEvent(uint256 bettingId, uint256 amount);
     event WithdrawProfitsEvent(uint256 profits);
+    event ClaimReward(
+        address winner,
+        uint256 round,
+        uint256 table,
+        uint256 amount
+    );
 }
