@@ -47,7 +47,7 @@ contract Box9 is Ibox9 {
         uint256 rewards;
         uint256[] betIds;
         uint256 totalBets;
-        uint256 jackpotCredits;
+        uint256[] jackpotCredits;
     }
 
     struct Round {
@@ -280,7 +280,7 @@ contract Box9 is Ibox9 {
         );
 
         pl.totalBets = pl.totalBets.add(amount);
-        pl.jackpotCredits = pl.jackpotCredits.add(quantity);
+        pl.jackpotCredits[_tableId] = pl.jackpotCredits[_tableId].add(quantity);
 
         /* give the bonus to referrer */
         uint256 bonus = amount.mul(referralReward);
@@ -968,6 +968,30 @@ contract Box9 is Ibox9 {
 
         emit ClaimReward(bet.player, bet.round, bet.tableIndex, amount);
         return amount;
+    }
+
+    /**
+     * @notice returns how many keys and how many more boxes are needed for next key
+     * @param  _player - player's address
+     * @param  _tableId - table index
+     * @return uint256 - number of unused keys
+     * @return uint256 - how many boxes to bet to get the next key
+     */
+
+    function getJackpotKeysInfo(address _player, uint256 _tableId)
+        external
+        view
+        isPlayer(_player)
+        returns (uint256 keys, uint256 creditsLeftForNextKey)
+    {
+        Player storage pl = playerInfo[_player];
+        keys = pl.jackpotCredits[_tableId].div(jackpotKeyCost);
+        creditsLeftForNextKey = pl.jackpotCredits[_tableId].mod(jackpotKeyCost);
+        if (creditsLeftForNextKey == 0) {
+            creditsLeftForNextKey = jackpotKeyCost;
+        }
+
+        return (keys, creditsLeftForNextKey);
     }
 
     /**
