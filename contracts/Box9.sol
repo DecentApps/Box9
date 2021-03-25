@@ -306,6 +306,9 @@ contract Box9 is Ibox9 {
         uint256 _amount
     ) internal {
         Table storage tbl = tableInfo[_round][_tableId];
+        /* player shouldn't be able to rebet on same table and spin */
+        require(!_addressExists(tbl.players, _bettor));
+
         if (!tbl.open) {
             /* open the table if first bettor */
             tbl.open = true;
