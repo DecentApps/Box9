@@ -8,11 +8,6 @@ import "./SafeMath.sol";
 contract Box9 is Ibox9 {
     using SafeMath for uint256;
 
-    address private admin;
-    address private houseWallet;
-    uint256 private houseVault;
-    uint256[] private tables;
-    uint256 private nextBet;
     uint256 private constant precision = 3; /* decimal places for mantissa */
     uint256 private constant rounding = 2; /* round down the number for winnings for user friendliness*/
     uint256 private constant referralReward = 10;
@@ -22,6 +17,12 @@ contract Box9 is Ibox9 {
     uint256 private constant session = 10; /* blocks between spins */
     uint256 private constant jackpotSession = 10000; /* blocks between jackpots */
     address private constant zeroAddress = address(0x0);
+
+    address private admin;
+    address private houseWallet;
+    uint256 private houseVault;
+    uint256[] private tables;
+    uint256 private nextBet;
 
     //function Box9(address _houseWallet) public {
     function Box9() public {
@@ -78,12 +79,19 @@ contract Box9 is Ibox9 {
         uint256 pot;
     }
 
+    struct LastResults {
+        uint256 round;
+        address[] lastWinners;
+        uint256[] lastAwards;
+    }
+
     /* mappings */
     mapping(address => Player) private playerInfo;
     mapping(uint256 => Round) private roundInfo; /* mapping by blockHeight; */
     mapping(uint256 => Jackpot) private jackpotInfo; /* mapping by blockHeight; */
     mapping(uint256 => mapping(uint256 => Table)) private tableInfo; /* first uint is round, second is table index */
     mapping(uint256 => Betting) private betInfo;
+    mapping(uint256 => LastResults) private tableWinners; /* mapping by table id */
 
     /* events */
     event RegisterEvent(address player, address referrer);
@@ -206,7 +214,7 @@ contract Box9 is Ibox9 {
     /**
      * @notice player chooses boxes (6 maximum)
      * Transaction reverts if not enough coins in his account
-     * Also, bettor opens(initiates) teh table if he is teh first bettor
+     * Also, bettor opens(initiates) the table if he is the first bettor
      * @param  _chosenBoxes - 9 lowest bits show the boxes he has chosen
      * @param  _tableId - the table
      * @return uint256 - the next blockheigh for the box spin
@@ -626,7 +634,7 @@ contract Box9 is Ibox9 {
     {
         /* necessary checks */
         require(_blocknumber < block.number);
-        require(_blocknumber.mod(10) == 0);
+        require(_blocknumber.mod(session) == 0);
         Round storage r = roundInfo[_blocknumber];
         require(r.result == 0);
 
@@ -658,7 +666,7 @@ contract Box9 is Ibox9 {
         /* necessary checks */
 
         require(_blocknumber < block.number);
-        require(_blocknumber.mod(10) == 0);
+        require(_blocknumber.mod(session) == 0);
         Round storage r = roundInfo[_blocknumber];
         require(r.result == 0);
         require(r.requireFix);
@@ -682,7 +690,7 @@ contract Box9 is Ibox9 {
     {
         /* necessary checks */
         require(_round < block.number);
-        require(_round.mod(10) == 0);
+        require(_round.mod(session) == 0);
         Round storage r = roundInfo[_round];
         /* round must be updated first */
         require(r.result != 0);
@@ -785,5 +793,32 @@ contract Box9 is Ibox9 {
         uint256 mask = 10**_cut;
         rounded = rounded.div(mask).mul(mask);
         return rounded;
+    }
+
+    /**
+     * @notice saving last round winners for showing purposes only
+     * can be triggered by anyone, doesnt affect the player's balance
+     * @param _tableId - the table
+     * @return uint256 - returns the number of winners
+     * @return uint256 - the total awards given
+     */
+    function updateLastWinners(uint256 _tableId)
+        external
+        returns (uint256 winners, uint256 totalAwards)
+    {
+        require(_tableId < tables.length.sub(1));
+        uint256 lastRound = _getNextRound() - session;
+        /* exit if already computed */
+        LastResults storage tw = tableWinners[lastRound];
+        require(tw.round != lastRound);
+
+        /* initiate the structure */
+        tw.round = lastRound;
+        tw.lastWinners.length = 0;
+        tw.lastAwards.length = 0;
+
+        /* get all winners for the table */
+        /* save in structure */
+        /* return how many and how much*/
     }
 }
