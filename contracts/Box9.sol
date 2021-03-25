@@ -237,7 +237,7 @@ contract Box9 is Ibox9 {
         require(quantity != 0);
 
         /* check if table exists */
-        require(_tableId < tables.length.sub(1));
+        require(_tableId < tables.length);
         uint256 boxprice = tables[_tableId];
         require(boxprice > 0);
 
@@ -817,7 +817,7 @@ contract Box9 is Ibox9 {
         external
         returns (uint256 winners, uint256 totalAwards)
     {
-        require(_tableId < tables.length.sub(1));
+        require(_tableId < tables.length);
         uint256 lastRound = _getNextRound() - session;
         /* exit if already computed */
         LastResults storage tw = tableWinners[lastRound];
@@ -829,8 +829,32 @@ contract Box9 is Ibox9 {
         tw.lastAwards.length = 0;
 
         /* get all winners for the table */
-        /* save in structure */
-        /* return how many and how much*/
+        Table memory tbl = tableInfo[lastRound][_tableId];
+        Betting memory bet = betInfo[0]; /* just declare */
+        uint256 mask;
+        uint256 amount;
+
+        for (uint256 i = 0; i < tbl.betId.length; i++) {
+            bet = betInfo[tbl.betId[i]];
+
+            for (uint256 w = 0; w < 3; w++) {
+                mask = 2**tbl.winningNumbers[w];
+                if (bet.boxChoice & mask != 0) {
+                    amount = amount.add(tbl.winningAmount[w]);
+                }
+            }
+            if (amount != 0) {
+                /* player won at least one prize */
+                tw.lastWinners.push(bet.player);
+                tw.lastAwards.push(amount);
+                winners = winners.add(1);
+                totalAwards = totalAwards.add(amount);
+                amount = 0;
+            }
+        }
+
+        emit UpdateLastWinners(winners, totalAwards);
+        return (winners, totalAwards);
     }
 
     /**
