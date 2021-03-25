@@ -843,7 +843,7 @@ contract Box9 is Ibox9 {
 
         Table memory tbl = tableInfo[bet.round][bet.tableIndex];
         /* extra check, if betid exists on table */
-        // require _numberExists(tbl.betId, bet.id);
+        require(_numberExists(tbl.betId, bet.id));
 
         /* compute the winning amount */
         uint256 mask;
@@ -860,5 +860,43 @@ contract Box9 is Ibox9 {
 
         emit ClaimReward(bet.player, bet.round, bet.tableIndex, amount);
         return amount;
+    }
+
+    /**
+     * @notice search adddress in array
+     * @param _array - array to be searched
+     * @param _value - the element
+     * @return bool - returns true if exists, else false
+     */
+    function _addressExists(address[] _array, address _value)
+        internal
+        pure
+        returns (bool)
+    {
+        for (uint256 i = 0; i < _array.length; i++) {
+            if (_array[i] == _value) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * @notice search integer in array
+     * @param _array - array to be searched
+     * @param _value - the element
+     * @return bool - returns true if exists, else false
+     */
+    function _numberExists(uint256[] _array, uint256 _value)
+        internal
+        pure
+        returns (bool)
+    {
+        for (uint256 i = 0; i < _array.length; i++) {
+            if (_array[i] == _value) {
+                return true;
+            }
+        }
+        return false;
     }
 }
