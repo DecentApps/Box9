@@ -14,6 +14,7 @@ contract Box9 is Ibox9 {
     uint256 private constant goldReward = 650;
     uint256 private constant silverReward = 125;
     uint256 private constant jackpotReward = 50;
+    uint256 private constant jackpotKeyCost = 50; /* how many credits per key*/
     uint256 private constant session = 10; /* blocks between spins */
     uint256 private constant jackpotSession = 10000; /* blocks between jackpots */
     address private constant zeroAddress = address(0x0);
@@ -46,7 +47,7 @@ contract Box9 is Ibox9 {
         uint256 rewards;
         uint256[] betIds;
         uint256 totalBets;
-        uint256 jackpotKeys;
+        uint256 jackpotCredits;
     }
 
     struct Round {
@@ -279,6 +280,7 @@ contract Box9 is Ibox9 {
         );
 
         pl.totalBets = pl.totalBets.add(amount);
+        pl.jackpotCredits = pl.jackpotCredits.add(quantity);
 
         /* give the bonus to referrer */
         uint256 bonus = amount.mul(referralReward);
@@ -820,7 +822,7 @@ contract Box9 is Ibox9 {
         require(_tableId < tables.length);
         uint256 lastRound = _getNextRound() - session;
         /* exit if already computed */
-        LastResults storage tw = tableWinners[lastRound];
+        LastResults storage tw = tableWinners[_tableId];
         require(tw.round != lastRound);
 
         /* initiate the structure */
@@ -855,6 +857,36 @@ contract Box9 is Ibox9 {
 
         emit UpdateLastWinners(winners, totalAwards);
         return (winners, totalAwards);
+    }
+
+    /**
+     * @notice get winners addresses for a table of the last round
+     * @param  _tableId - table id
+     * @return address[] - address list of winners
+     */
+    function lastRoundWinners(uint256 _tableId)
+        external
+        view
+        returns (address[] winners)
+    {
+        LastResults memory tw = tableWinners[_tableId];
+        winners = tw.lastWinners;
+        return winners;
+    }
+
+    /**
+     * @notice get winning amounts for a table of the last round
+     * @param  _tableId - table id
+     * @return uint256[] - winning amount list of winners
+     */
+    function lastRoundAwards(uint256 _tableId)
+        external
+        view
+        returns (uint256[] winningAmount)
+    {
+        LastResults memory tw = tableWinners[_tableId];
+        winningAmount = tw.lastAwards;
+        return winningAmount;
     }
 
     /**

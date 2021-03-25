@@ -173,6 +173,26 @@ interface Ibox9 {
         external
         returns (uint256 totalPlayers, uint256 totalBets);
 
+    /**
+     * @notice get winners addresses for a table of the last round
+     * @param  _tableId - table id
+     * @return address[] - address list of winners
+     */
+    function lastRoundWinners(uint256 _tableId)
+        external
+        view
+        returns (address[] winners);
+
+    /**
+     * @notice get winning amounts for a table of the last round
+     * @param  _tableId - table id
+     * @return uint256[] - winning amount list of winners
+     */
+    function lastRoundAwards(uint256 _tableId)
+        external
+        view
+        returns (uint256[] winningAmount);
+
     /* Events */
     event RegisterEvent(address player, address referrer);
     event DepositEvent(address player, uint256 amount);
