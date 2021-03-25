@@ -831,8 +831,8 @@ contract Box9 is Ibox9 {
         tw.lastAwards.length = 0;
 
         /* get all winners for the table */
-        Table memory tbl = tableInfo[lastRound][_tableId];
-        Betting memory bet = betInfo[0]; /* just declare */
+        Table storage tbl = tableInfo[lastRound][_tableId]; /* use as storage to save some gas*/
+        Betting storage bet;
         uint256 mask;
         uint256 amount;
 
@@ -852,6 +852,9 @@ contract Box9 is Ibox9 {
                 winners = winners.add(1);
                 totalAwards = totalAwards.add(amount);
                 amount = 0;
+            } else {
+                /* no winnings, set it to claimed to save gas for other functions */
+                bet.claimed = true;
             }
         }
 
@@ -887,6 +890,52 @@ contract Box9 is Ibox9 {
         LastResults memory tw = tableWinners[_tableId];
         winningAmount = tw.lastAwards;
         return winningAmount;
+    }
+
+    /**
+     * @notice returns all betIds for unclaimed wins for a player
+     * @param _player - player's address
+     * @return uint256[] - returns the array for betIds that haven't been claimed yet
+     */
+    function getUnclaimedWinnings(address _player)
+        external
+        view
+        isPlayer(_player)
+        returns (uint256[])
+    {
+        Player memory pl = playerInfo[_player];
+        uint256[] memory unclaimedBets = new uint256[](pl.betIds.length);
+        Betting memory bet;
+        uint256 index;
+        for (uint256 i = 0; i < pl.betIds.length; i++) {
+            bet = betInfo[pl.betIds[i]];
+            if (bet.claimed) {
+                continue;
+            } else {
+                unclaimedBets[index] = pl.betIds[i];
+                index = index.add(1);
+            }
+        }
+
+        uint256[] memory unclaimedBetIds = new uint256[](index);
+        unclaimedBetIds = unclaimedBets;
+        return unclaimedBetIds;
+    }
+
+    /**
+     * @notice returns all betIds for a player
+     * @param _player - player's address
+     * @return uint256[] - returns the array for betIds that haven't been claimed yet
+     */
+    function getBettingHistory(address _player)
+        external
+        view
+        isPlayer(_player)
+        returns (uint256[] betIds)
+    {
+        Player memory pl = playerInfo[_player];
+        betIds = pl.betIds;
+        return betIds;
     }
 
     /**

@@ -193,6 +193,26 @@ interface Ibox9 {
         view
         returns (uint256[] winningAmount);
 
+    /**
+     * @notice returns all betIds for unclaimed wins for a player
+     * @param _player - player's address
+     * @return uint256[] - returns the array for betIds that haven't been claimed yet
+     */
+    function getUnclaimedWinnings(address _player)
+        external
+        view
+        returns (uint256[] betIds);
+
+    /**
+     * @notice returns all betIds for a player
+     * @param _player - player's address
+     * @return uint256[] - returns the array for betIds that haven't been claimed yet
+     */
+    function getBettingHistory(address _player)
+        external
+        view
+        returns (uint256[] betIds);
+
     /* Events */
     event RegisterEvent(address player, address referrer);
     event DepositEvent(address player, uint256 amount);
