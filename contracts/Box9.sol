@@ -25,9 +25,7 @@ contract Box9 is Ibox9 {
     uint256[] private tables;
     uint256 private nextBet;
 
-    //function Box9(address _houseWallet) public {
-    function Box9() public {
-        address _houseWallet = msg.sender; /* set to constructor arg later*/
+    function Box9(address _houseWallet) public {
         admin = msg.sender;
         houseWallet = _houseWallet;
         nextBet = 1;
@@ -159,7 +157,7 @@ contract Box9 is Ibox9 {
     function register(address _referrer) external {
         Player storage pl = playerInfo[msg.sender];
         /* check if user already registered */
-        require(pl.referrer != zeroAddress);
+        require(pl.referrer == zeroAddress);
 
         /* check if there is a referrer*/
         if (_referrer == zeroAddress) {
