@@ -78,7 +78,10 @@ contract Box9 is Ibox9 {
     }
 
     struct Jackpot {
+        bool open;
         uint256 pot;
+        address[] jPlayers;
+        uint256[] betId;
     }
 
     struct LastResults {
@@ -90,7 +93,7 @@ contract Box9 is Ibox9 {
     /* mappings */
     mapping(address => Player) private playerInfo;
     mapping(uint256 => Round) private roundInfo; /* mapping by blockHeight; */
-    mapping(uint256 => Jackpot) private jackpotInfo; /* mapping by blockHeight; */
+    mapping(uint256 => mapping(uint256 => Jackpot)) private jackpotInfo; /* first uint is round, second is table index */
     mapping(uint256 => mapping(uint256 => Table)) private tableInfo; /* first uint is round, second is table index */
     mapping(uint256 => Betting) private betInfo;
     mapping(uint256 => LastResults) private tableWinners; /* mapping by table id */
@@ -107,6 +110,7 @@ contract Box9 is Ibox9 {
         uint256 table,
         uint256 amount
     );
+    event JoinJackpot(address player, uint256 round, uint256 betId);
 
     event UpdateRoundState(uint256 blocknumber, uint256 hash);
     event UpdateTableState(uint256 blocknumber, uint256 tableIndex);
@@ -330,6 +334,44 @@ contract Box9 is Ibox9 {
             }
             mask << 1;
         }
+    }
+
+    /**
+     * @notice use a key to join the jackpot spin
+     * succeeds only if there is normal bet on this round
+     * @param  _tableId - the table id
+     * @return round - the jackpot round
+     */
+    function joinJackpot(uint256 _tableId)
+        external
+        isPlayer(msg.sender)
+        returns (uint256 round)
+    {
+        uint256 nRound = _getNextRound();
+        uint256 jRound = _getNextJackpotRound(block.number);
+        require(nRound == jRound);
+
+        Player storage pl = playerInfo[msg.sender];
+        require(pl.jackpotCredits[_tableId] >= jackpotKeyCost); /* reduntant check */
+
+        pl.jackpotCredits[_tableId] = pl.jackpotCredits[_tableId].sub(
+            jackpotKeyCost
+        );
+
+        Jackpot storage j = jackpotInfo[jRound][_tableId];
+        j.jPlayers.push(msg.sender);
+        /* get last bet for the player*/
+        uint256 lastBetId = pl.betIds[pl.betIds.length.sub(1)];
+
+        /* there must be a normal bet for this round */
+        Betting storage lastBet = betInfo[lastBetId];
+        require(lastBet.round == nRound);
+
+        j.betId.push(lastBetId);
+
+        emit JoinJackpot(msg.sender, round, lastBetId);
+        round = jRound;
+        return jRound;
     }
 
     /**
@@ -718,7 +760,7 @@ contract Box9 is Ibox9 {
         /* compute and save all rewards awards */
         uint256 jRound = _getNextJackpotRound(_round);
 
-        Jackpot storage j = jackpotInfo[jRound];
+        Jackpot storage j = jackpotInfo[jRound][_tableId];
 
         uint256 capital =
             (tbl.boxesOnNumber[tbl.winningNumbers[0]] +

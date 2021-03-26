@@ -76,6 +76,14 @@ interface Ibox9 {
         returns (uint256 round);
 
     /**
+     * @notice use a key to join the jackpot spin
+     * succeeds only if there is normal bet on this round
+     * @param  _tableId - the table id
+     * @return round - the jackpot round
+     */
+    function joinJackpot(uint256 _tableId) external returns (uint256 round);
+
+    /**
      * @notice shows current players and betting amounts for a table
      * @param   _blocknumber the block height of the round
      * @param  _tableId - the table id
@@ -238,4 +246,5 @@ interface Ibox9 {
         uint256 table,
         uint256 amount
     );
+    event JoinJackpot(address player, uint256 round, uint256 betId);
 }
