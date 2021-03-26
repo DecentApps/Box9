@@ -118,7 +118,7 @@ interface Ibox9 {
      * @param  _tableId - table index
      * @return uint8[3] - returns three winning boxes by box index (first is golden)
      */
-    function _winningBoxes(uint256 _round, uint256 _tableId)
+    function winningBoxes(uint256 _round, uint256 _tableId)
         external
         view
         returns (uint8[3] result);

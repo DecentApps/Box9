@@ -580,7 +580,7 @@ contract Box9 is Ibox9 {
     }
 
     /**
-     * @notice returns the winning boxes by block height
+     * @notice returns the winning boxes by block height and table
      * @param  _round - block height
      * @param  _tableId - table index
      * @return uint8[3] - returns three winning boxes by box index (first is golden)
