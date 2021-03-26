@@ -508,20 +508,26 @@ contract Box9 is Ibox9 {
     }
 
     /**
-     * @notice returns the winning boxes by blockhash
-     * @param  _blockhash - the blockhash to decode
+     * @notice returns the winning boxes by blockhash and table
+     * @param  _blockhash - the round blockhash
+     * @param  _tableId - table index
      * @return uint8[3] - returns three winning boxes by box index (first is golden)
      */
-    function _roundResult(uint256 _blockhash)
+    function _roundResult(uint256 _blockhash, uint256 _tableId)
         internal
-        pure
+        view
         returns (uint8[3] result)
     {
+        require(_tableId < tables.length);
         uint256 mask = 0xfffffff;
         uint256[9] memory boxes;
         uint256 min;
         uint256 index;
-        uint256 random = _blockhash >> 4; /* discard the last hex digit*/
+        /* add the table price to blockhash to make it unique for each table
+           and rehash using keccak256 */
+        uint256 random = uint256(keccak256(_blockhash + tables[_tableId]));
+
+        random = random >> 4; /* discard the last hex digit*/
         for (uint8 i = 0; i < 9; i++) {
             boxes[8 - i] = random & mask; /* get last 7 hex digits */
             random = random >> (7 * 4); /* prepare the random number for next box */
@@ -576,9 +582,10 @@ contract Box9 is Ibox9 {
     /**
      * @notice returns the winning boxes by block height
      * @param  _round - block height
+     * @param  _tableId - table index
      * @return uint8[3] - returns three winning boxes by box index (first is golden)
      */
-    function _winningBoxes(uint256 _round)
+    function _winningBoxes(uint256 _round, uint256 _tableId)
         internal
         view
         returns (uint8[3] result)
@@ -587,20 +594,21 @@ contract Box9 is Ibox9 {
         Round storage r = roundInfo[_round];
         blockhash = r.result;
         require(blockhash != 0);
-        return (_roundResult(blockhash));
+        return (_roundResult(blockhash, _tableId));
     }
 
     /**
-     * @notice returns the winning boxes by block height
+     * @notice returns the winning boxes by block height and table
      * @param  _round - block height
+     * @param  _tableId - table index
      * @return uint8[3] - returns three winning boxes by box index (first is golden)
      */
-    function winningBoxes(uint256 _round)
+    function winningBoxes(uint256 _round, uint256 _tableId)
         external
         view
         returns (uint8[3] result)
     {
-        return _winningBoxes(_round);
+        return _winningBoxes(_round, _tableId);
     }
 
     /**
@@ -755,7 +763,7 @@ contract Box9 is Ibox9 {
         require(tbl.open == true);
 
         /* update winning numbers */
-        tbl.winningNumbers = _winningBoxes(_round);
+        tbl.winningNumbers = _winningBoxes(_round, _tableId);
 
         /* compute and save all rewards awards */
         uint256 jRound = _getNextJackpotRound(_round);
