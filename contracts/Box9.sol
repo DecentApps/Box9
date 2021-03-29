@@ -635,12 +635,12 @@ contract Box9 is Ibox9 {
     }
 
     /**
-     * @notice returns block height for next jackpot
+     * @notice returns block height for next jackpot(internal)
      * @param _round - the next jackpot after this round
      * @return uint256 - the block height of next jackpot
      */
     function _getNextJackpotRound(uint256 _round)
-        public
+        internal
         pure
         returns (uint256 blockHeight)
     {
@@ -654,6 +654,19 @@ contract Box9 is Ibox9 {
         }
         nextJackpotSpin = nextJackpotSpin.add(jackpotSession - gap);
         return nextJackpotSpin;
+    }
+
+    /**
+     * @notice returns block height for next jackpot(external)
+     * @param _round - the next jackpot after this round
+     * @return uint256 - the block height of next jackpot
+     */
+    function getNextJackpotSpin(uint256 _round)
+        external
+        pure
+        returns (uint256 blockHeight)
+    {
+        return _getNextJackpotRound(_round);
     }
 
     /**

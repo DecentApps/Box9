@@ -241,6 +241,16 @@ interface Ibox9 {
      */
     function getNextSpin() external view returns (uint256 blockHeight);
 
+    /**
+     * @notice returns block height for next jackpot(external)
+     * @param _round - the next jackpot after this round
+     * @return uint256 - the block height of next jackpot
+     */
+    function getNextJackpotSpin(uint256 _round)
+        external
+        pure
+        returns (uint256 blockHeight);
+
     /* Events */
     event RegisterEvent(address player, address referrer);
     event DepositEvent(address player, uint256 amount);
