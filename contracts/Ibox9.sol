@@ -20,7 +20,7 @@ interface Ibox9 {
     /**
      * @notice withdraws all profits to cold wallet
      * callable only by admin
-     * @param  _amount - the amount. If zero then withdraw the full balance
+     * @param  _amount - the amount. If zero then withdraw all credits
      * @return uint256 - the withdrawn profits
      */
     function withdrawProfits(uint256 _amount)
@@ -52,7 +52,7 @@ interface Ibox9 {
      * @notice returns general data for a player
      * @param  _player address
      * @return address - refferer's address
-     * @return uint256 - balance
+     * @return uint256 - credits
      * @return uint256 - commissions
      */
     function getPlayerInfo(address _player)
@@ -60,7 +60,7 @@ interface Ibox9 {
         view
         returns (
             address referrer,
-            uint256 balance,
+            uint256 credits,
             uint256 commissions
         );
 

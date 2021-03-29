@@ -40,7 +40,7 @@ contract Box9 is Ibox9 {
 
     struct Player {
         address referrer;
-        uint256 balance;
+        uint256 credits;
         address[] referrees;
         uint256 rewards;
         uint256[] betIds;
@@ -176,7 +176,7 @@ contract Box9 is Ibox9 {
     /**
      * @notice withdraws all profits to cold wallet
      * callable only by admin
-     * @param  _amount - the amount. If zero then withdraw the full balance
+     * @param  _amount - the amount. If zero then withdraw all credits
      * @return uint256 - the withdrawn profits
      */
     function withdrawProfits(uint256 _amount)
@@ -205,7 +205,7 @@ contract Box9 is Ibox9 {
      * @notice returns general data for a player
      * @param  _player address
      * @return address - refferer's address
-     * @return uint256 - balance
+     * @return uint256 - credits
      * @return uint256 - commissions
      */
     function getPlayerInfo(address _player)
@@ -213,13 +213,13 @@ contract Box9 is Ibox9 {
         view
         returns (
             address referrer,
-            uint256 balance,
+            uint256 credits,
             uint256 commissions
         )
     {
         Player storage pl = playerInfo[_player];
 
-        return (pl.referrer, pl.balance, pl.rewards);
+        return (pl.referrer, pl.credits, pl.rewards);
     }
 
     /**
@@ -244,10 +244,10 @@ contract Box9 is Ibox9 {
         uint256 boxprice = tables[_tableId];
         require(boxprice > 0);
 
-        /* check if enough balance */
+        /* check if enough credits */
         Player storage pl = playerInfo[msg.sender];
         uint256 amount = quantity * boxprice;
-        require(pl.balance >= amount);
+        require(pl.credits >= amount);
 
         /* get next round */
         round = _getNextRound();
@@ -258,10 +258,10 @@ contract Box9 is Ibox9 {
             minR = amount;
         }
         pl.rewards = pl.rewards.sub(minR);
-        pl.balance = pl.balance.add(minR);
+        pl.credits = pl.credits.add(minR);
 
-        /* decrease balance */
-        pl.balance = pl.balance.sub(amount);
+        /* decrease credits */
+        pl.credits = pl.credits.sub(amount);
 
         /* create bet struct */
         Betting storage bet = betInfo[nextBet];
@@ -291,7 +291,7 @@ contract Box9 is Ibox9 {
             houseVault = houseVault.add(bonus);
         } else {
             Player storage ref = playerInfo[pl.referrer];
-            ref.rewards.add(bonus);
+            ref.rewards = ref.rewards.add(bonus);
         }
 
         /* emit event */
@@ -456,7 +456,7 @@ contract Box9 is Ibox9 {
         require(msg.value > 0);
 
         Player storage pl = playerInfo[msg.sender];
-        pl.balance.add(msg.value);
+        pl.credits = pl.credits.add(msg.value);
         emit DepositEvent(msg.sender, msg.value);
     }
 
@@ -469,8 +469,8 @@ contract Box9 is Ibox9 {
     function withdraw(address _to, uint256 _amount) external payable {
         require(_amount > 0);
         Player storage pl = playerInfo[msg.sender];
-        require(pl.balance >= _amount);
-        pl.balance.sub(_amount);
+        require(pl.credits >= _amount);
+        pl.credits = pl.credits.sub(_amount);
         _to.transfer(_amount);
         emit WithdrawEvent(msg.sender, _to, _amount);
     }
@@ -858,7 +858,7 @@ contract Box9 is Ibox9 {
 
     /**
      * @notice saving last round winners for showing purposes only
-     * can be triggered by anyone, doesnt affect the player's balance
+     * can be triggered by anyone, doesnt affect the player's credits
      * @param _tableId - the table
      * @return uint256 - returns the number of winners
      * @return uint256 - the total awards given
@@ -1012,7 +1012,7 @@ contract Box9 is Ibox9 {
 
         bet.claimed = true;
         Player storage pl = playerInfo[msg.sender];
-        pl.balance = pl.balance.add(amount);
+        pl.credits = pl.credits.add(amount);
 
         emit ClaimReward(bet.player, bet.round, bet.tableIndex, amount);
         return amount;
