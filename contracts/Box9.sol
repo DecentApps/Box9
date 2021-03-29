@@ -282,6 +282,10 @@ contract Box9 is Ibox9 {
         );
 
         pl.totalBets = pl.totalBets.add(amount);
+        /* in case of new tables by admin adjust the array length accordingly */
+        if (pl.jackpotCredits.length != tables.length) {
+            pl.jackpotCredits.length = tables.length;
+        }
         pl.jackpotCredits[_tableId] = pl.jackpotCredits[_tableId].add(quantity);
 
         /* give the bonus to referrer */
@@ -350,6 +354,10 @@ contract Box9 is Ibox9 {
         require(nRound == jRound);
 
         Player storage pl = playerInfo[msg.sender];
+        /* in case of new tables by admin adjust the array length accordingly */
+        if (pl.jackpotCredits.length != tables.length) {
+            pl.jackpotCredits.length = tables.length;
+        }
         require(pl.jackpotCredits[_tableId] >= jackpotKeyCost); /* reduntant check */
 
         pl.jackpotCredits[_tableId] = pl.jackpotCredits[_tableId].sub(
