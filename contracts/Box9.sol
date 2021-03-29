@@ -610,7 +610,7 @@ contract Box9 is Ibox9 {
     }
 
     /**
-     * @notice returns block height for next round
+     * @notice returns block height for next round(internal)
      * @return uint256 - the block height of next spin
      */
     function _getNextRound() internal view returns (uint256 blockHeight) {
@@ -624,6 +624,14 @@ contract Box9 is Ibox9 {
         }
         nextSpin = nextSpin.add(session - gap);
         return nextSpin;
+    }
+
+    /**
+     * @notice returns block height for next round (external)
+     * @return uint256 - the block height of next spin
+     */
+    function getNextSpin() external view returns (uint256 blockHeight) {
+        return _getNextRound();
     }
 
     /**

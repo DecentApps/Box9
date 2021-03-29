@@ -235,6 +235,12 @@ interface Ibox9 {
         view
         returns (uint256 keys, uint256 creditsLeftForNextKey);
 
+    /**
+     * @notice returns block height for next round (external)
+     * @return uint256 - the block height of next spin
+     */
+    function getNextSpin() external view returns (uint256 blockHeight);
+
     /* Events */
     event RegisterEvent(address player, address referrer);
     event DepositEvent(address player, uint256 amount);
