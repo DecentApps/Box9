@@ -229,6 +229,19 @@ contract Box9 is Ibox9 {
     }
 
     /**
+     * @notice returns the withdrawable vault balance - admin only
+     * @return uint256 - house balance
+     */
+    function checkVaultBalance()
+        external
+        view
+        isAdmin()
+        returns (uint256 balance)
+    {
+        return houseVault;
+    }
+
+    /**
      * @notice player chooses boxes (6 maximum)
      * Transaction reverts if not enough coins in his account
      * Also, bettor opens(initiates) the table if he is the first bettor
