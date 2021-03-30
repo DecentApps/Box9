@@ -145,6 +145,17 @@ interface Ibox9 {
         returns (address referrer, uint256 amount);
 
     /**
+     * @notice returns round info
+     * @param _round - block height
+     * @return uint256 - saved blockhash
+     * @return bool - true if needs fix
+     */
+    function getRoundInfo(uint256 _round)
+        external
+        view
+        returns (uint256 hash, bool requireFix);
+
+    /**
      * @notice give winnings for a bet to the player - can be triggered only by player
      * @param _betId - the bet id
      * @return uint256 - returns the claimed amount
