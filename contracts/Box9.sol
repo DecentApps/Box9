@@ -282,6 +282,7 @@ contract Box9 is Ibox9 {
         );
 
         pl.totalBets = pl.totalBets.add(amount);
+        pl.betIds.push(bet.id);
         /* in case of new tables by admin adjust the array length accordingly */
         if (pl.jackpotCredits.length != tables.length) {
             pl.jackpotCredits.length = tables.length;
