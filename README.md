@@ -24,42 +24,28 @@ Each block header contains a block hash. This hash has the following desirable p
 - It is accessible directly by the Virtual Machine, so the smart contract can be extract it easily. 
 - Can't be manipulated by anyone , either by a player, admin or an external source, including the staker.
 - This hash is the result of the SHA-256 function , which guarantees a very high random number (of 256 bit) with equal probability. So the dice is fair in a decentralized way (no one can predict or alter the result of winning boxes).
-- Also, it is easily verifiable by players (or anyone else). The verification process is the following:
+- Also, it is verifiable by players (or anyone else). The verification process is the following:
 
-* -  The verifier gets the block hash of the blockchain (for example the explorer)
-* -  The hash has 64 hex digits(64x4=256 bits). He discards the last digit.
+* -  The verifier gets the block hash by calling the function
+```
+getRoundInfo(_blockheight)
+```
+, wher blockheigh is the round number he wants to check. The value is saved in smart contract by the smart contract code using teh expression 
+```
+block.blockhash(_blockheight)
+```
+* -  The hash has 64 hex digits(64x4=256 bits). To this number, the box price in coins of the table is added. The reason for this is to produce different random numbers per table.
+* - The result is hashed by keccak256. The produced hash digits are uniformly random.
+* - Verifier discards the last digit of the new hash.
 * -  From the first 63 digits he splits equally the number to 9 parts(the nine boxes).
 * -  Now each part has 7 hex digits.
 * - He shorts them from the lower number (closest to zero) to higher.
 * - Lowest number is the gold box , second and third are the silver ones. The other boxes are all empty.
+* - All the above logic is implemented in the function
+```
+_roundResult(uint256 _blockhash, uint256 _tableId)
+```
 
-#### Example of a round result
-
-Let's say that the player wants to verify the result of the round that just finished. We get as example the block **1346760** of main net. The steps are the following:
-
-* -  The verifier gets the blockhash, which is **9333bd0dbf50896186a02547d4b97f7c44ad3a067ae2e76b4b9a6292ea03699b**
-* -  last digit is "b", so it discard it
-* -  It splits **9333bd0dbf50896186a02547d4b97f7c44ad3a067ae2e76b4b9a6292ea03699** as following:
-- box 1: **9333bd0**
-- box 2: **dbf5089**
-- box 3: **6186a02**
-- box 4: **547d4b9**
-- box 5: **7f7c44a**
-- box 6: **d3a067a**
-- box 7: **e2e76b4**
-- box 8: **b9a6292**
-- box 9: **ea03699**
-* - After shorting the result is the following:
-- box 4: **547d4b9**
-- box 3: **6186a02**
-- box 5: **7f7c44a**
-- box 1: **9333bd0**
-- box 8: **b9a6292**
-- box 6: **d3a067a**
-- box 2: **dbf5089**
-- box 7: **e2e76b4**
-- box 9: **ea03699**
-* - Lowest number wins. Consequently, **box 4** has the gold award while silver awards are in **boxes 3 and 5**.
 
 
 *Licence:* Apache 2-0
