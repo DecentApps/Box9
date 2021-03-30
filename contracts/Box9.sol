@@ -1062,6 +1062,7 @@ contract Box9 is Ibox9 {
         for (uint256 w = 0; w < 3; w++) {
             mask = 2**tbl.winningNumbers[w];
             if (bet.boxChoice & mask != 0) {
+                amount = amount.add(tbl.boxPrice); /* capital */
                 amount = amount.add(tbl.winningAmount[w]);
             }
         }
