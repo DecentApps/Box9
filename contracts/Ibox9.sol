@@ -266,7 +266,13 @@ interface Ibox9 {
     event RegisterEvent(address player, address referrer);
     event DepositEvent(address player, uint256 amount);
     event WithdrawEvent(address player, address destination, uint256 amount);
-    event BetEvent(uint256 bettingId, uint256 amount);
+    event BetEvent(
+        uint256 bettingId,
+        address player,
+        uint256 round,
+        uint256 _tableId,
+        uint256 amount
+    );
     event WithdrawProfitsEvent(uint256 profits);
     event ClaimReward(
         address winner,
