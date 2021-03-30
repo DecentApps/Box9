@@ -184,6 +184,56 @@ interface Ibox9 {
 
     /**
      * @notice returns how many bettors and coins on a specific number for the next round
+     * @param  _round - block height
+     * @param  _tableId - table index
+     * @return bool - true if table is open
+     * @return uint256 - box price
+     * @return uint256 - total amount in table pot
+     */
+    function getTableStatus(uint256 _round, uint256 _tableId)
+        external
+        view
+        returns (
+            bool status,
+            uint256 boxPrice,
+            uint256 potAmount
+        );
+
+    /**
+     * @notice returns how many bettors and coins on a specific number for the next round
+     * @param  _round - block height
+     * @param  _tableId - table index
+     * @return uint8[3] - array of winning numbers, the first is gold
+     */
+    function getTableResult(uint256 _round, uint256 _tableId)
+        external
+        view
+        returns (uint8[3] winningNumbers);
+
+    /**
+     * @notice returns how many bettors and coins on a specific number for the next round
+     * @param  _round - block height
+     * @param  _tableId - table index
+     * @return uint256[3] - array of prizes, fisrt is gold
+     */
+    function getTablePrizes(uint256 _round, uint256 _tableId)
+        external
+        view
+        returns (uint256[3] winningAmount);
+
+    /**
+     * @notice returns how many bettors and coins on a specific number for the next round
+     * @param  _round - block height
+     * @param  _tableId - table index
+     * @return address[] - array of addresses of table joiners
+     */
+    function getTableJoiners(uint256 _round, uint256 _tableId)
+        external
+        view
+        returns (address[] players);
+
+    /**
+     * @notice returns how many bettors and coins on a specific number for the next round
      * @param  _number - box number
      * @param  _tableId - table index
      * @return uint256 - the number of bettors
@@ -191,6 +241,7 @@ interface Ibox9 {
      */
     function getNumberState(uint8 _number, uint256 _tableId)
         external
+        view
         returns (uint256 totalPlayers, uint256 totalBets);
 
     /**
