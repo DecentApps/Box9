@@ -531,7 +531,8 @@ contract Box9 is Ibox9 {
         uint256 index;
         /* add the table price to blockhash to make it unique for each table
            and rehash using keccak256 */
-        uint256 random = uint256(keccak256(_blockhash + tables[_tableId]));
+        uint256 random =
+            uint256(keccak256(_blockhash + tables[_tableId].div(1e8)));
 
         random = random >> 4; /* discard the last hex digit*/
         for (uint8 i = 0; i < 9; i++) {
@@ -542,6 +543,7 @@ contract Box9 is Ibox9 {
         /* get the three lowest numbers */
         for (uint8 j = 0; j < 3; j++) {
             min = boxes[0];
+            index = 0;
             for (i = 1; i < 9; i++) {
                 if (boxes[i] < min) {
                     min = boxes[i];
