@@ -1237,7 +1237,9 @@ contract Box9 is Ibox9 {
     {
         Player storage pl = playerInfo[_player];
         keys = pl.jackpotCredits[_tableId].div(jackpotKeyCost);
-        creditsLeftForNextKey = pl.jackpotCredits[_tableId].mod(jackpotKeyCost);
+        creditsLeftForNextKey = jackpotKeyCost.sub(
+            pl.jackpotCredits[_tableId].mod(jackpotKeyCost)
+        );
         if (creditsLeftForNextKey == 0) {
             creditsLeftForNextKey = jackpotKeyCost;
         }
