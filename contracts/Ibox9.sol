@@ -156,6 +156,40 @@ interface Ibox9 {
         returns (uint256 hash, bool requireFix);
 
     /**
+     * @notice returns jackpot info
+     * @param _round - block height
+     * @param _tableId - the table index
+     * @return bool - true if not arranged yet
+     * @return uint256 - the amount in jackpot
+     */
+    function getjackpotInfo(uint256 _round, uint256 _tableId)
+        external
+        view
+        returns (bool status, uint256 potAmount);
+
+    /**
+     * @notice returns jackpot players
+     * @param _round - block height
+     * @param _tableId - the table index
+     * @return address[] - addresses of joiners
+     */
+    function getjackpotJoiners(uint256 _round, uint256 _tableId)
+        external
+        view
+        returns (address[] joiners);
+
+    /**
+     * @notice returns jackpot bet ids
+     * @param _round - block height
+     * @param _tableId - the table index
+     * @return uint256[] - array of bet ids
+     */
+    function getjackpotBets(uint256 _round, uint256 _tableId)
+        external
+        view
+        returns (uint256[] betIds);
+
+    /**
      * @notice give winnings for a bet to the player - can be triggered only by player
      * @param _betId - the bet id
      * @return uint256 - returns the claimed amount
