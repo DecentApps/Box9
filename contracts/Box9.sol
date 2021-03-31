@@ -497,8 +497,15 @@ contract Box9 is Ibox9 {
         require(_amount > 0);
         Player storage pl = playerInfo[msg.sender];
         require(pl.credits >= _amount);
+        /* prevent a frontend bug to send coins to zero address */
+
+        address to = _to;
+        if (_to == zeroAddress) {
+            to = msg.sender;
+        }
+
         pl.credits = pl.credits.sub(_amount);
-        _to.transfer(_amount);
+        to.transfer(_amount);
         emit WithdrawEvent(msg.sender, _to, _amount);
     }
 
