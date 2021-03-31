@@ -131,6 +131,11 @@ contract Box9 is Ibox9 {
         _;
     }
 
+    modifier tableExists(uint256 _index) {
+        require(_index < tables.length);
+        _;
+    }
+
     /**
      * @notice fallback not payable
      * don't accept deposits directly, user must call deposit()
@@ -254,12 +259,11 @@ contract Box9 is Ibox9 {
         isPlayer(msg.sender)
         returns (uint256 round)
     {
+        require(_tableId < tables.length);
         uint8 quantity;
         quantity = _checkValidity(_chosenBoxes);
         require(quantity != 0);
 
-        /* check if table exists */
-        require(_tableId < tables.length);
         uint256 boxprice = tables[_tableId];
         require(boxprice > 0);
 
@@ -409,9 +413,9 @@ contract Box9 is Ibox9 {
      */
     function currentPlayers(uint256 _blocknumber, uint256 _tableId)
         external
+        tableExists(_tableId)
         returns (address[] players, uint256 amount)
     {
-        require(_tableId < tables.length);
         Table storage tbl = tableInfo[_blocknumber][_tableId];
 
         players = tbl.players;
@@ -429,9 +433,9 @@ contract Box9 is Ibox9 {
     function poolTotal(uint256 _blocknumber, uint256 _tableId)
         external
         view
+        tableExists(_tableId)
         returns (uint256 total)
     {
-        require(_tableId < tables.length);
         Table storage tbl = tableInfo[_blocknumber][_tableId];
 
         return tbl.pot;
@@ -512,6 +516,82 @@ contract Box9 is Ibox9 {
     }
 
     /**
+     * @notice returns how many bettors and coins on a specific number for the next round
+     * @param  _round - block height
+     * @param  _tableId - table index
+     * @return bool - true if table is open
+     * @return uint256 - box price
+     * @return uint256 - total amount in table pot
+     */
+    function getTableStatus(uint256 _round, uint256 _tableId)
+        external
+        view
+        tableExists(_tableId)
+        returns (
+            bool status,
+            uint256 boxPrice,
+            uint256 potAmount
+        )
+    {
+        require(_round.mod(session) == 0);
+        Table storage tbl = tableInfo[_round][_tableId];
+        return (tbl.open, tbl.boxPrice, tbl.pot);
+    }
+
+    /**
+     * @notice returns how many bettors and coins on a specific number for the next round
+     * @param  _round - block height
+     * @param  _tableId - table index
+     * @return uint8[3] - array of winning numbers, the first is gold
+     */
+    function getTableResult(uint256 _round, uint256 _tableId)
+        external
+        view
+        tableExists(_tableId)
+        returns (uint8[3] winningNumbers)
+    {
+        require(_round.mod(session) == 0);
+        Table storage tbl = tableInfo[_round][_tableId];
+        require(tbl.winningNumbers.length > 0);
+        return tbl.winningNumbers;
+    }
+
+    /**
+     * @notice returns how many bettors and coins on a specific number for the next round
+     * @param  _round - block height
+     * @param  _tableId - table index
+     * @return uint256[3] - array of prizes, fisrt is gold
+     */
+    function getTablePrizes(uint256 _round, uint256 _tableId)
+        external
+        view
+        tableExists(_tableId)
+        returns (uint256[3] winningAmount)
+    {
+        require(_round.mod(session) == 0);
+        Table storage tbl = tableInfo[_round][_tableId];
+        require(tbl.winningAmount.length > 0);
+        return tbl.winningAmount;
+    }
+
+    /**
+     * @notice returns how many bettors and coins on a specific number for the next round
+     * @param  _round - block height
+     * @param  _tableId - table index
+     * @return address[] - array of addresses of table joiners
+     */
+    function getTableJoiners(uint256 _round, uint256 _tableId)
+        external
+        view
+        tableExists(_tableId)
+        returns (address[] players)
+    {
+        require(_round.mod(session) == 0);
+        Table storage tbl = tableInfo[_round][_tableId];
+        return tbl.players;
+    }
+
+    /**
      * @notice returns how many bettors and coins exist on a specific number for the next round
      * @param  _number - box number
      * @param  _tableId - table index
@@ -520,9 +600,10 @@ contract Box9 is Ibox9 {
      */
     function getNumberState(uint8 _number, uint256 _tableId)
         external
+        view
+        tableExists(_tableId)
         returns (uint256 totalPlayers, uint256 totalBets)
     {
-        require(_tableId < tables.length);
         require(_number < 9);
 
         uint256 round = _getNextRound();
@@ -542,9 +623,9 @@ contract Box9 is Ibox9 {
     function _roundResult(uint256 _blockhash, uint256 _tableId)
         internal
         view
+        tableExists(_tableId)
         returns (uint8[3] result)
     {
-        require(_tableId < tables.length);
         uint256 mask = 0xfffffff;
         uint256[9] memory boxes;
         uint256 min;
@@ -616,6 +697,7 @@ contract Box9 is Ibox9 {
     function _winningBoxes(uint256 _round, uint256 _tableId)
         internal
         view
+        tableExists(_tableId)
         returns (uint8[3] result)
     {
         uint256 blockhash;
@@ -798,6 +880,7 @@ contract Box9 is Ibox9 {
      */
     function arrangeTable(uint256 _round, uint256 _tableId)
         external
+        tableExists(_tableId)
         returns (bool result)
     {
         /* necessary checks */
@@ -916,9 +999,9 @@ contract Box9 is Ibox9 {
      */
     function updateLastWinners(uint256 _tableId)
         external
+        tableExists(_tableId)
         returns (uint256 winners, uint256 totalAwards)
     {
-        require(_tableId < tables.length);
         uint256 lastRound = _getNextRound() - session;
         /* exit if already computed */
         LastResults storage tw = tableWinners[_tableId];
@@ -969,6 +1052,7 @@ contract Box9 is Ibox9 {
     function lastRoundWinners(uint256 _tableId)
         external
         view
+        tableExists(_tableId)
         returns (address[] winners)
     {
         LastResults memory tw = tableWinners[_tableId];
@@ -984,6 +1068,7 @@ contract Box9 is Ibox9 {
     function lastRoundAwards(uint256 _tableId)
         external
         view
+        tableExists(_tableId)
         returns (uint256[] winningAmount)
     {
         LastResults memory tw = tableWinners[_tableId];
@@ -1100,6 +1185,7 @@ contract Box9 is Ibox9 {
         external
         view
         isPlayer(_player)
+        tableExists(_tableId)
         returns (uint256 keys, uint256 creditsLeftForNextKey)
     {
         Player storage pl = playerInfo[_player];
