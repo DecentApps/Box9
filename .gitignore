@@ -1,2 +1,3 @@
 artifacts/
 contracts/artifacts
+contracts/debug*

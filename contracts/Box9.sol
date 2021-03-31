@@ -353,7 +353,7 @@ contract Box9 is Ibox9 {
             if (_choice & mask != 0) {
                 tbl.boxesOnNumber[i] = tbl.boxesOnNumber[i].add(1);
             }
-            mask << 1;
+            mask = mask << 1;
         }
     }
 
