@@ -240,7 +240,6 @@ contract Box9 is Ibox9 {
     function checkVaultBalance()
         external
         view
-        isAdmin()
         returns (uint256 balance)
     {
         return houseVault;
