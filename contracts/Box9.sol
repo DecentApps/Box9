@@ -237,11 +237,7 @@ contract Box9 is Ibox9 {
      * @notice returns the withdrawable vault balance - admin only
      * @return uint256 - house balance
      */
-    function checkVaultBalance()
-        external
-        view
-        returns (uint256 balance)
-    {
+    function checkVaultBalance() external view returns (uint256 balance) {
         return houseVault;
     }
 
@@ -1073,6 +1069,58 @@ contract Box9 is Ibox9 {
         LastResults memory tw = tableWinners[_tableId];
         winningAmount = tw.lastAwards;
         return winningAmount;
+    }
+
+    /**
+     * @notice returns jackpot info
+     * @param _round - block height
+     * @param _tableId - the table index
+     * @return bool - true if not arranged yet
+     * @return uint256 - the amount in jackpot
+     */
+    function getjackpotInfo(uint256 _round, uint256 _tableId)
+        external
+        view
+        tableExists(_tableId)
+        returns (bool status, uint256 potAmount)
+    {
+        Jackpot storage j = jackpotInfo[_round][_tableId];
+
+        return (j.open, j.pot);
+    }
+
+    /**
+     * @notice returns jackpot players
+     * @param _round - block height
+     * @param _tableId - the table index
+     * @return address[] - addresses of joiners
+     */
+    function getjackpotJoiners(uint256 _round, uint256 _tableId)
+        external
+        view
+        tableExists(_tableId)
+        returns (address[] joiners)
+    {
+        Jackpot storage j = jackpotInfo[_round][_tableId];
+
+        return (j.jPlayers);
+    }
+
+    /**
+     * @notice returns jackpot bet ids
+     * @param _round - block height
+     * @param _tableId - the table index
+     * @return uint256[] - array of bet ids
+     */
+    function getjackpotBets(uint256 _round, uint256 _tableId)
+        external
+        view
+        tableExists(_tableId)
+        returns (uint256[] betIds)
+    {
+        Jackpot storage j = jackpotInfo[_round][_tableId];
+
+        return (j.betId);
     }
 
     /**
