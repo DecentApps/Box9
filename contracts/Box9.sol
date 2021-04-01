@@ -265,7 +265,7 @@ contract Box9 is Ibox9 {
         /* check if enough credits */
         Player storage pl = playerInfo[msg.sender];
         uint256 amount = quantity * boxprice;
-        require(pl.credits >= amount);
+        require(pl.credits.add(pl.rewards) >= amount);
 
         /* get next round */
         round = _getNextRound();
@@ -408,15 +408,15 @@ contract Box9 is Ibox9 {
      */
     function currentPlayers(uint256 _blocknumber, uint256 _tableId)
         external
+        view
         tableExists(_tableId)
-        returns (address[] players, uint256 amount)
+        returns (address[] players)
     {
         Table storage tbl = tableInfo[_blocknumber][_tableId];
 
         players = tbl.players;
-        amount = tbl.pot;
 
-        return (players, amount);
+        return players;
     }
 
     /**
@@ -893,7 +893,7 @@ contract Box9 is Ibox9 {
         require(r.result != 0);
 
         Table storage tbl = tableInfo[_round][_tableId];
-
+        uint256 houseGains = tbl.pot;
         require(tbl.open == true);
 
         /* update winning numbers */
@@ -923,9 +923,15 @@ contract Box9 is Ibox9 {
                 tbl.winningAmount[0],
                 roundMask
             );
-            tbl.pot = tbl.pot.sub(award);
+            award = tbl.boxesOnNumber[tbl.winningNumbers[0]].mul(
+                tbl.winningAmount[0]
+            );
+            houseGains = houseGains.sub(award);
         } else {
-            j.pot = j.pot.add(remaining.mul(goldReward).div(10**precision));
+            award = remaining.mul(goldReward).div(10**precision);
+            j.pot = j.pot.add(award);
+            tbl.pot = tbl.pot.sub(award);
+            houseGains = houseGains.sub(award);
         }
 
         if (tbl.boxesOnNumber[tbl.winningNumbers[1]] != 0) {
@@ -941,9 +947,15 @@ contract Box9 is Ibox9 {
                 tbl.winningAmount[1],
                 roundMask
             );
-            tbl.pot = tbl.pot.sub(award);
+            award = tbl.boxesOnNumber[tbl.winningNumbers[1]].mul(
+                tbl.winningAmount[1]
+            );
+            houseGains = houseGains.sub(award);
         } else {
+            award = remaining.mul(silverReward).div(10**precision);
             j.pot = j.pot.add(remaining.mul(silverReward).div(10**precision));
+            tbl.pot = tbl.pot.sub(award);
+            houseGains = houseGains.sub(award);
         }
 
         if (tbl.boxesOnNumber[tbl.winningNumbers[2]] != 0) {
@@ -959,20 +971,35 @@ contract Box9 is Ibox9 {
                 tbl.winningAmount[2],
                 roundMask
             );
-            tbl.pot = tbl.pot.sub(award);
+            award = tbl.boxesOnNumber[tbl.winningNumbers[2]].mul(
+                tbl.winningAmount[2]
+            );
+            houseGains = houseGains.sub(award);
         } else {
+            award = remaining.mul(silverReward).div(10**precision);
             j.pot = j.pot.add(remaining.mul(silverReward).div(10**precision));
+            tbl.pot = tbl.pot.sub(award);
+            houseGains = houseGains.sub(award);
         }
 
-        j.pot = j.pot.add(remaining.mul(jackpotReward).div(10**precision));
-        j.pot = _roundNumber(j.pot, roundMask);
-        tbl.pot = tbl.pot.sub(j.pot);
+        /* jackpot award */
+        award = remaining.mul(jackpotReward).div(10**precision);
+        award = _roundNumber(award, roundMask);
+        j.pot = j.pot.add(award);
 
-        houseVault = houseVault.add(tbl.pot);
-        tbl.pot = 0;
+        /* update houseVault */
+        houseGains = houseGains.sub(award);
+        houseGains = houseGains.sub(capital);
+        houseVault = houseVault.add(houseGains);
+
+        /* remove jackpot award from table pot*/
+        tbl.pot = tbl.pot.sub(award);
+        /* remove house gains from table pot*/
+        tbl.pot = tbl.pot.sub(houseGains);
+
         tbl.open = false;
 
-        return result;
+        return true;
     }
 
     /**

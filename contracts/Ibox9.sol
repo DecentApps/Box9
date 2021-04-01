@@ -88,11 +88,11 @@ interface Ibox9 {
      * @param   _blocknumber the block height of the round
      * @param  _tableId - the table id
      * @return address[] - list of all players for the round
-     * @return amount[] - amount in coins for each player
      */
     function currentPlayers(uint256 _blocknumber, uint256 _tableId)
         external
-        returns (address[] players, uint256 amount);
+        view
+        returns (address[] players);
 
     /**
      * @notice returns all information about a bet
