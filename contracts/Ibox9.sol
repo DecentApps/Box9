@@ -135,7 +135,7 @@ interface Ibox9 {
         returns (uint8[3] result);
 
     /**
-     * @notice returns addresses od refferees
+     * @notice returns addresses of refferees
      * @param _referrer  - address of the referrer
      * @return address[] - returns the referee addresses
      */

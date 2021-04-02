@@ -438,20 +438,20 @@ contract Box9 is Ibox9 {
     }
 
     /**
-     * @notice returns addresses od refferees
+     * @notice returns addresses of refferees
      * @param _referrer  - address of the referrer
      * @return address[] - returns the referee addresses
      */
+
     function showReferrees(address _referrer)
         external
         view
         isPlayer(_referrer)
-        returns (address[] referrees)
+        returns (address[])
     {
-        Player memory pl = playerInfo[_referrer];
-        referrees = pl.referrees;
+        Player storage pl = playerInfo[_referrer];
 
-        return referrees;
+        return pl.referrees;
     }
 
     /**
@@ -464,11 +464,10 @@ contract Box9 is Ibox9 {
         view
         returns (uint256[] totalBonus)
     {
-        Player memory pl = playerInfo[_referrer];
+        Player storage pl = playerInfo[_referrer];
         for (uint256 i = 0; i < pl.referrees.length; i++) {
-            Player memory ref = playerInfo[pl.referrees[i]];
+            Player storage ref = playerInfo[pl.referrees[i]];
             totalBonus[i] = (ref.totalBets * referralReward) / (10**precision);
-            delete ref;
         }
 
         return totalBonus;
@@ -663,7 +662,7 @@ contract Box9 is Ibox9 {
         for (uint8 j = 0; j < 3; j++) {
             min = boxes[0];
             index = 0;
-            for (i = 1; i < 9; i++) {
+            for (i = 0; i < 9; i++) {
                 if (boxes[i] < min) {
                     min = boxes[i];
                     index = i;
@@ -731,6 +730,7 @@ contract Box9 is Ibox9 {
         for (uint256 i = 0; i < 3; i++) {
             wMask = 2**tbl.winningNumbers[i];
             if (bet.boxChoice & wMask != 0) {
+                amount = amount.add(tbl.boxPrice);
                 amount = amount.add(tbl.winningAmount[i]);
             }
         }
@@ -1280,7 +1280,7 @@ contract Box9 is Ibox9 {
         require(bet.player == msg.sender);
         require(bet.round < block.number);
 
-        Table memory tbl = tableInfo[bet.round][bet.tableIndex];
+        Table storage tbl = tableInfo[bet.round][bet.tableIndex];
         /* extra check, if betid exists on table */
         require(_numberExists(tbl.betId, bet.id));
 
@@ -1296,6 +1296,7 @@ contract Box9 is Ibox9 {
 
         bet.claimed = true;
         Player storage pl = playerInfo[msg.sender];
+        tbl.pot = tbl.pot.sub(amount);
         pl.credits = pl.credits.add(amount);
 
         emit ClaimReward(bet.player, bet.round, bet.tableIndex, amount);
