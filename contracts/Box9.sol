@@ -437,25 +437,40 @@ contract Box9 is Ibox9 {
     }
 
     /**
-     * @notice shows the data of current rewards for a refferer
+     * @notice returns addresses od refferees
      * @param _referrer  - address of the referrer
-     * @return address[], uint256[] - returns the referee addresses and corresponding total amount of coins
+     * @return address[] - returns the referee addresses
+     */
+    function showReferrees(address _referrer)
+        external
+        view
+        isPlayer(_referrer)
+        returns (address[] referrees)
+    {
+        Player memory pl = playerInfo[_referrer];
+        referrees = pl.referrees;
+
+        return referrees;
+    }
+
+    /**
+     * @notice returns an array of bonuses for a refferer
+     * @param _referrer  - address of the referrer
+     * @return uint256[] - returns the corresponding total amount of coins
      */
     function showReferralBonuses(address _referrer)
         external
         view
-        isPlayer(_referrer)
-        returns (address[] referrees, uint256[] totalBonus)
+        returns (uint256[] totalBonus)
     {
         Player memory pl = playerInfo[_referrer];
-        referrees = pl.referrees;
-        for (uint256 i = 0; i < referrees.length; i++) {
-            Player memory ref = playerInfo[referrees[i]];
+        for (uint256 i = 0; i < pl.referrees.length; i++) {
+            Player memory ref = playerInfo[pl.referrees[i]];
             totalBonus[i] = (ref.totalBets * referralReward) / (10**precision);
             delete ref;
         }
 
-        return (referrees, totalBonus);
+        return totalBonus;
     }
 
     /**

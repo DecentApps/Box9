@@ -134,15 +134,24 @@ interface Ibox9 {
         returns (uint8[3] result);
 
     /**
-     * @notice returns stastics of bonuses for a refferer
+     * @notice returns addresses od refferees
      * @param _referrer  - address of the referrer
-     * @return address[], uint256[] - returns the referee addresses
+     * @return address[] - returns the referee addresses
+     */
+    function showReferrees(address _referrer)
+        external
+        view
+        returns (address[] referrees);
+
+    /**
+     * @notice returns an array of bonuses for a refferer
+     * @param _referrer  - address of the referrer
      * @return uint256[] - returns the corresponding total amount of coins
      */
     function showReferralBonuses(address _referrer)
         external
         view
-        returns (address[] referrees, uint256[] totalBonus);
+        returns (uint256[] totalBonus);
 
     /**
      * @notice bonus info
