@@ -691,6 +691,38 @@ contract Box9 is Ibox9 {
     }
 
     /**
+     * @notice returns the winning amount for an unclaimed bet
+     * @param  _betId - id of the bet
+     * @return uint256 - the winning amount to claim
+     */
+    function checkWinningAmount(uint256 _betId)
+        external
+        view
+        returns (uint256 amount)
+    {
+        require(_betId < nextBet);
+
+        Betting storage bet = betInfo[_betId];
+        require(!bet.claimed);
+
+        Round storage r = roundInfo[bet.round];
+        require(r.result != 0);
+
+        Table storage tbl = tableInfo[bet.round][bet.tableIndex];
+        require(_numberExists(tbl.betId, _betId));
+
+        uint16 wMask;
+        for (uint256 i = 0; i < 3; i++) {
+            wMask = 2**tbl.winningNumbers[i];
+            if (bet.boxChoice & wMask != 0) {
+                amount = amount.add(tbl.winningAmount[i]);
+            }
+        }
+
+        return amount;
+    }
+
+    /**
      * @notice returns the winning boxes by block height and table
      * @param  _round - block height
      * @param  _tableId - table index
