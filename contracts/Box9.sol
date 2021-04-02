@@ -225,12 +225,13 @@ contract Box9 is Ibox9 {
         returns (
             address referrer,
             uint256 credits,
-            uint256 commissions
+            uint256 commissions,
+            uint256 totalBets
         )
     {
         Player storage pl = playerInfo[_player];
 
-        return (pl.referrer, pl.credits, pl.rewards);
+        return (pl.referrer, pl.credits, pl.rewards, pl.totalBets);
     }
 
     /**

@@ -61,7 +61,8 @@ interface Ibox9 {
         returns (
             address referrer,
             uint256 credits,
-            uint256 commissions
+            uint256 commissions,
+            uint256 totalBets
         );
 
     /**
