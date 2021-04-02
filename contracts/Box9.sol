@@ -695,7 +695,7 @@ contract Box9 is Ibox9 {
      * @param  _betId - id of the bet
      * @return uint256 - the winning amount to claim
      */
-    function checkWinningAmount(uint256 _betId)
+    function showUnclaimedReward(uint256 _betId)
         external
         view
         returns (uint256 amount)
