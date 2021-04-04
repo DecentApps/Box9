@@ -662,7 +662,7 @@ contract Box9 is Ibox9 {
         for (uint8 j = 0; j < 3; j++) {
             min = boxes[0];
             index = 0;
-            for (i = 0; i < 9; i++) {
+            for (i = 1; i < 9; i++) {
                 if (boxes[i] < min) {
                     min = boxes[i];
                     index = i;
