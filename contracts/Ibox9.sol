@@ -257,17 +257,6 @@ interface Ibox9 {
      * @notice returns how many bettors and coins on a specific number for the next round
      * @param  _round - block height
      * @param  _tableId - table index
-     * @return uint8[3] - array of winning numbers, the first is gold
-     */
-    function getTableResult(uint256 _round, uint256 _tableId)
-        external
-        view
-        returns (uint8[3] winningNumbers);
-
-    /**
-     * @notice returns how many bettors and coins on a specific number for the next round
-     * @param  _round - block height
-     * @param  _tableId - table index
      * @return uint256[3] - array of prizes, fisrt is gold
      */
     function getTablePrizes(uint256 _round, uint256 _tableId)

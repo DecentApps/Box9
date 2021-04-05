@@ -559,24 +559,6 @@ contract Box9 is Ibox9 {
      * @notice returns how many bettors and coins on a specific number for the next round
      * @param  _round - block height
      * @param  _tableId - table index
-     * @return uint8[3] - array of winning numbers, the first is gold
-     */
-    function getTableResult(uint256 _round, uint256 _tableId)
-        external
-        view
-        tableExists(_tableId)
-        returns (uint8[3] winningNumbers)
-    {
-        require(_round.mod(session) == 0);
-        Table storage tbl = tableInfo[_round][_tableId];
-        require(tbl.winningNumbers.length > 0);
-        return tbl.winningNumbers;
-    }
-
-    /**
-     * @notice returns how many bettors and coins on a specific number for the next round
-     * @param  _round - block height
-     * @param  _tableId - table index
      * @return uint256[3] - array of prizes, fisrt is gold
      */
     function getTablePrizes(uint256 _round, uint256 _tableId)
