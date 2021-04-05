@@ -8,6 +8,8 @@ import "./SafeMath.sol";
 contract Box9 is Ibox9 {
     using SafeMath for uint256;
 
+    uint256 public firtsSpin;
+
     uint256 private constant precision = 3; /* decimal places for mantissa */
     uint256 private constant rounding = 2; /* round down the number for winnings for user friendliness*/
     uint256 private constant referralReward = 10;
@@ -36,6 +38,9 @@ contract Box9 is Ibox9 {
         tables.push(100 * 1e8);
         tables.push(500 * 1e8);
         tables.push(1000 * 1e8);
+
+        /* save first round */
+        firtsSpin = _getNextRound();
     }
 
     struct Player {
