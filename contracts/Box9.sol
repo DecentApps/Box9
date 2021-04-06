@@ -470,12 +470,14 @@ contract Box9 is Ibox9 {
         returns (uint256[] totalBonus)
     {
         Player storage pl = playerInfo[_referrer];
+        uint256[] memory tBonus = new uint256[](pl.referrees.length);
+
         for (uint256 i = 0; i < pl.referrees.length; i++) {
             Player storage ref = playerInfo[pl.referrees[i]];
-            totalBonus[i] = (ref.totalBets * referralReward) / (10**precision);
+            tBonus[i] = (ref.totalBets * referralReward) / (10**precision);
         }
 
-        return totalBonus;
+        return tBonus;
     }
 
     /**
@@ -1272,7 +1274,7 @@ contract Box9 is Ibox9 {
         require(_numberExists(tbl.betId, bet.id));
 
         /* compute the winning amount */
-        uint256 mask;
+        uint16 mask;
         for (uint256 w = 0; w < 3; w++) {
             mask = uint16(2)**tbl.winningNumbers[w];
             if (bet.boxChoice & mask != 0) {
