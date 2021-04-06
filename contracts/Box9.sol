@@ -715,7 +715,7 @@ contract Box9 is Ibox9 {
 
         uint16 wMask;
         for (uint256 i = 0; i < 3; i++) {
-            wMask = 2**tbl.winningNumbers[i];
+            wMask = uint16(2)**tbl.winningNumbers[i];
             if (bet.boxChoice & wMask != 0) {
                 amount = amount.add(tbl.boxPrice);
                 amount = amount.add(tbl.winningAmount[i]);
@@ -1086,7 +1086,7 @@ contract Box9 is Ibox9 {
             bet = betInfo[tbl.betId[i]];
 
             for (uint256 w = 0; w < 3; w++) {
-                mask = 2**tbl.winningNumbers[w];
+                mask = uint16(2)**tbl.winningNumbers[w];
                 if (bet.boxChoice & mask != 0) {
                     amount = amount.add(tbl.winningAmount[w]);
                 }
@@ -1274,7 +1274,7 @@ contract Box9 is Ibox9 {
         /* compute the winning amount */
         uint256 mask;
         for (uint256 w = 0; w < 3; w++) {
-            mask = 2**tbl.winningNumbers[w];
+            mask = uint16(2)**tbl.winningNumbers[w];
             if (bet.boxChoice & mask != 0) {
                 amount = amount.add(tbl.boxPrice); /* capital */
                 amount = amount.add(tbl.winningAmount[w]);
