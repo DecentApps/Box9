@@ -905,6 +905,26 @@ contract Box9 is Ibox9 {
     }
 
     /**
+     * @notice checks if a table is arranged (updated) or not
+     * callable by anyone
+     * @param  _round the block height of the round
+     * @param  _tableId the table index
+     * @return bool - true if arranged
+     */
+    function isTableArranged(uint256 _round, uint256 _tableId)
+        external
+        view
+        returns (bool arranged)
+    {
+        Table storage tbl = tableInfo[_round][_tableId];
+        if (tbl.players.length > 0 && !tbl.open) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
      * @notice update the round state if not updated on time - admin only
      * @param  _blocknumber the block height of the round
      * @param  _blockhash the correct blockhash

@@ -299,6 +299,18 @@ interface Ibox9 {
         returns (bool arranged);
 
     /**
+     * @notice checks if a table is arranged (updated) or not
+     * callable by anyone
+     * @param  _round the block height of the round
+     * @param  _tableId the table index
+     * @return bool - true if arranged
+     */
+    function isTableArranged(uint256 _round, uint256 _tableId)
+        external
+        view
+        returns (bool arranged);
+
+    /**
      * @notice get winners addresses for a table of the last round
      * @param  _tableId - table id
      * @return address[] - address list of winners
