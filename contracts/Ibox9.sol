@@ -288,6 +288,17 @@ interface Ibox9 {
         returns (uint256 totalPlayers, uint256 totalBets);
 
     /**
+     * @notice checks if a round hash is arranged (saved) or not
+     * callable by anyone
+     * @param  _blocknumber the block height of the round
+     * @return bool - true if arranged
+     */
+    function isRoundArranged(uint256 _blocknumber)
+        external
+        view
+        returns (bool arranged);
+
+    /**
      * @notice get winners addresses for a table of the last round
      * @param  _tableId - table id
      * @return address[] - address list of winners

@@ -886,6 +886,25 @@ contract Box9 is Ibox9 {
     }
 
     /**
+     * @notice checks if a round hash is arranged (saved) or not
+     * callable by anyone
+     * @param  _blocknumber the block height of the round
+     * @return bool - true if arranged
+     */
+    function isRoundArranged(uint256 _blocknumber)
+        external
+        view
+        returns (bool arranged)
+    {
+        Round storage r = roundInfo[_blocknumber];
+        if (r.result == 0) {
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+    /**
      * @notice update the round state if not updated on time - admin only
      * @param  _blocknumber the block height of the round
      * @param  _blockhash the correct blockhash
