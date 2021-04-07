@@ -18,7 +18,7 @@ contract Box9 is Ibox9 {
     uint256 private constant jackpotReward = 50;
     uint256 private constant jackpotKeyCost = 50; /* how many credits per key*/
     uint256 private constant session = 10; /* blocks between spins */
-    uint256 private constant jackpotSession = 10000; /* blocks between jackpots */
+    uint256 private constant jackpotSession = 20; /* blocks between jackpots */
     address private constant zeroAddress = address(0x0);
 
     address private admin;
@@ -27,7 +27,10 @@ contract Box9 is Ibox9 {
     uint256[] private tables;
     uint256 private nextBet;
 
-    function Box9(address _houseWallet) public {
+    bool private debugFlag;
+    uint256[] public debugInfo;
+
+    function Box9(address _houseWallet, bool _debug) public {
         admin = msg.sender;
         houseWallet = _houseWallet;
         nextBet = 1;
@@ -41,6 +44,12 @@ contract Box9 is Ibox9 {
 
         /* save first round */
         firtsSpin = _getNextRound();
+
+        debugFlag = _debug;
+
+        if (debugFlag) {
+            _initiate();
+        }
     }
 
     struct Player {
@@ -308,9 +317,11 @@ contract Box9 is Ibox9 {
         pl.totalBets = pl.totalBets.add(amount);
         pl.betIds.push(bet.id);
         /* in case of new tables by admin adjust the array length accordingly */
+
         if (pl.jackpotCredits.length != tables.length) {
             pl.jackpotCredits.length = tables.length;
         }
+
         pl.jackpotCredits[_tableId] = pl.jackpotCredits[_tableId].add(quantity);
 
         /* give the bonus to referrer */
@@ -383,6 +394,7 @@ contract Box9 is Ibox9 {
         if (pl.jackpotCredits.length != tables.length) {
             pl.jackpotCredits.length = tables.length;
         }
+
         require(pl.jackpotCredits[_tableId] >= jackpotKeyCost); /* reduntant check */
 
         pl.jackpotCredits[_tableId] = pl.jackpotCredits[_tableId].sub(
@@ -391,17 +403,24 @@ contract Box9 is Ibox9 {
 
         Jackpot storage j = jackpotInfo[jRound][_tableId];
         j.jPlayers.push(msg.sender);
-        /* get last bet for the player*/
-        uint256 lastBetId = pl.betIds[pl.betIds.length.sub(1)];
 
-        /* there must be a normal bet for this round */
-        Betting storage lastBet = betInfo[lastBetId];
-        require(lastBet.round == nRound);
-
-        j.betId.push(lastBetId);
-
-        emit JoinJackpot(msg.sender, round, lastBetId);
-        round = jRound;
+        /* find the correct bet id for this table */
+        uint256 nBetId;
+        for (uint256 i = pl.betIds.length - 1; i != 0; --i) {
+            Betting storage nBet = betInfo[pl.betIds[i]];
+            if ((nBet.round == nRound) && (nBet.tableIndex == _tableId)) {
+                nBetId = nBet.id;
+                break;
+            }
+        }
+        require(nBetId != 0);
+        j.betId.push(nBetId);
+        
+        emit JoinJackpot(msg.sender, jRound, nBetId);
+        if(debugFlag) {
+            debugInfo.push(uint256(msg.sender));
+            debugInfo.push(nBetId);
+        }
         return jRound;
     }
 
@@ -1394,5 +1413,13 @@ contract Box9 is Ibox9 {
             }
         }
         return false;
+    }
+
+    function _initiate() internal {
+        address playerA = address(0x338797645e17c8e884a1dd60ffe4479c2c8713aa);
+        Player storage userA = playerInfo[playerA];
+        userA.referrer = address(0x50de2c13acf20f629dbb773be0b6908f15b9c0c6);
+        userA.credits = 1000000000000; // 10k coins
+        userA.jackpotCredits.push(4000);
     }
 }
