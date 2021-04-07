@@ -90,7 +90,7 @@ contract Box9 is Ibox9 {
     }
 
     struct Jackpot {
-        bool open;
+        bool arranged;
         uint256 pot;
         address[] jPlayers;
         uint256[] betId;
@@ -105,7 +105,7 @@ contract Box9 is Ibox9 {
     /* mappings */
     mapping(address => Player) private playerInfo;
     mapping(uint256 => Round) private roundInfo; /* mapping by blockHeight; */
-    mapping(uint256 => mapping(uint256 => Jackpot)) private jackpotInfo; /* first uint is round, second is table index */
+    mapping(uint256 => mapping(uint256 => Jackpot)) private jackpotInfo; /* first uint is round,second is table index */
     mapping(uint256 => mapping(uint256 => Table)) private tableInfo; /* first uint is round, second is table index */
     mapping(uint256 => Betting) private betInfo;
     mapping(uint256 => LastResults) private tableWinners; /* mapping by table id */
@@ -417,10 +417,7 @@ contract Box9 is Ibox9 {
         j.betId.push(nBetId);
 
         emit JoinJackpot(msg.sender, jRound, nBetId);
-        if (debugFlag) {
-            debugInfo.push(uint256(msg.sender));
-            debugInfo.push(nBetId);
-        }
+        
         return jRound;
     }
 
@@ -1098,6 +1095,19 @@ contract Box9 is Ibox9 {
     }
 
     /**
+     * @notice update jackpot state after a round is updated - callable by anyone
+     * @param  _round the block height of the round
+     * @param  _tableId the block height of the round
+     */
+    function arrangeJackpotTable(uint256 _round, uint256 _tableId) external {
+        /* check if jackpot table is already arranged*/
+        /* check if round is arranged */
+        /* count winners */
+        /* update Jackpot struct - winners, winning amount, set boolean */
+        /* round amount, send any changes to housevault */
+    }
+
+    /**
      * @notice rounding number by _precision digits
      * @param  _number - to be rounded
      * @param  _cut - how many digits to cut
@@ -1204,7 +1214,7 @@ contract Box9 is Ibox9 {
      * @notice returns jackpot info
      * @param _round - block height
      * @param _tableId - the table index
-     * @return bool - true if not arranged yet
+     * @return bool - false if not arranged yet
      * @return uint256 - the amount in jackpot
      */
     function getjackpotInfo(uint256 _round, uint256 _tableId)
@@ -1215,7 +1225,7 @@ contract Box9 is Ibox9 {
     {
         Jackpot storage j = jackpotInfo[_round][_tableId];
 
-        return (j.open, j.pot);
+        return (j.arranged, j.pot);
     }
 
     /**
@@ -1423,7 +1433,7 @@ contract Box9 is Ibox9 {
         userA.jackpotCredits.push(50); // 1 jp key
     }
 
-    function getDebugInfo() external view returns (uint256[] ) {
+    function getDebugInfo() external view returns (uint256[]) {
         return debugInfo;
     }
 }

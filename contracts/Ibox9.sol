@@ -53,7 +53,8 @@ interface Ibox9 {
      * @param  _player address
      * @return address - refferer's address
      * @return uint256 - credits
-     * @return uint256 - commissions
+     * @return uint256 - bonuses received from referees
+     * @return uint256 - total bets (on all tables)
      */
     function getPlayerInfo(address _player)
         external
@@ -179,7 +180,7 @@ interface Ibox9 {
      * @notice returns jackpot info
      * @param _round - block height
      * @param _tableId - the table index
-     * @return bool - true if not arranged yet
+     * @return bool - false if not arranged yet
      * @return uint256 - the amount in jackpot
      */
     function getjackpotInfo(uint256 _round, uint256 _tableId)
