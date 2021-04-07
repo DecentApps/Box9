@@ -28,7 +28,7 @@ contract Box9 is Ibox9 {
     uint256 private nextBet;
 
     bool private debugFlag;
-    uint256[] public debugInfo;
+    uint256[] private debugInfo;
 
     function Box9(address _houseWallet, bool _debug) public {
         admin = msg.sender;
@@ -415,9 +415,9 @@ contract Box9 is Ibox9 {
         }
         require(nBetId != 0);
         j.betId.push(nBetId);
-        
+
         emit JoinJackpot(msg.sender, jRound, nBetId);
-        if(debugFlag) {
+        if (debugFlag) {
             debugInfo.push(uint256(msg.sender));
             debugInfo.push(nBetId);
         }
@@ -1420,6 +1420,10 @@ contract Box9 is Ibox9 {
         Player storage userA = playerInfo[playerA];
         userA.referrer = address(0x50de2c13acf20f629dbb773be0b6908f15b9c0c6);
         userA.credits = 1000000000000; // 10k coins
-        userA.jackpotCredits.push(4000);
+        userA.jackpotCredits.push(50); // 1 jp key
+    }
+
+    function getDebugInfo() external view returns (uint256[] ) {
+        return debugInfo;
     }
 }
