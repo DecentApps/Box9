@@ -942,6 +942,23 @@ contract Box9 is Ibox9User, Ibox9Admin, Ibox9Any {
     }
 
     /**
+     * @notice checks if the jackpot is arranged (updated) or not
+     * callable by anyone
+     * @param  _round the block height of jackpot round
+     * @param  _tableId the table index
+     * @return bool - true if arranged
+     */
+    function isJTableArranged(uint256 _round, uint256 _tableId)
+        external
+        view
+        returns (bool arranged)
+    {
+        Jackpot storage j = jackpotInfo[_round][_tableId];
+
+        return j.arranged;
+    }
+
+    /**
      * @notice update the round state if not updated on time - admin only
      * @param  _blocknumber the block height of the round
      * @param  _blockhash the correct blockhash

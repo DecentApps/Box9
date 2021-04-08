@@ -293,6 +293,18 @@ interface Ibox9User {
         returns (bool arranged);
 
     /**
+     * @notice checks if the jackpot is arranged (updated) or not
+     * callable by anyone
+     * @param  _round the block height of jackpot round
+     * @param  _tableId the table index
+     * @return bool - true if arranged
+     */
+    function isJTableArranged(uint256 _round, uint256 _tableId)
+        external
+        view
+        returns (bool arranged);
+
+    /**
      * @notice get winners addresses for a table of the last round
      * @param  _tableId - table id
      * @return address[] - address list of winners
