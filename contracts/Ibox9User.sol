@@ -199,6 +199,16 @@ interface Ibox9User {
     function claimWinnings(uint256 _betId) external returns (uint256 amount);
 
     /**
+     * @notice gives jackpot prize to player - can be triggered only by player
+     * @param _round - block height
+     * @param _tableId - the table index
+     * @return uint256 - returns the jackpot prize
+     */
+    function claimJackpotPrize(uint256 _round, uint256 _tableId)
+        external
+        returns (uint256 prize);
+
+    /**
      * @notice deposit ECOC
      * revert on non-register user
      */
@@ -390,6 +400,12 @@ interface Ibox9User {
         uint256 round,
         uint256 table,
         uint256 amount
+    );
+    event ClaimJackpotPrize(
+        address winner,
+        uint256 round,
+        uint256 table,
+        uint256 jPrize
     );
     event JoinJackpot(address player, uint256 round, uint256 betId);
 }
