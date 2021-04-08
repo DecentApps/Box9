@@ -94,6 +94,8 @@ contract Box9 is Ibox9 {
         uint256 pot;
         address[] jPlayers;
         uint256[] betId;
+        address[] winners;
+        uint256 award;
     }
 
     struct LastResults {
@@ -417,7 +419,7 @@ contract Box9 is Ibox9 {
         j.betId.push(nBetId);
 
         emit JoinJackpot(msg.sender, jRound, nBetId);
-        
+
         return jRound;
     }
 
@@ -1101,10 +1103,34 @@ contract Box9 is Ibox9 {
      */
     function arrangeJackpotTable(uint256 _round, uint256 _tableId) external {
         /* check if jackpot table is already arranged*/
-        /* check if round is arranged */
-        /* count winners */
-        /* update Jackpot struct - winners, winning amount, set boolean */
+        require(_round.mod(jackpotSession) == 0);
+
+        /* check if normal table is arranged */
+        Table storage tbl = tableInfo[_round][_tableId];
+        require(tbl.players.length > 0 && !tbl.open);
+
+        /* update Jackpot state */
+        Jackpot storage j = jackpotInfo[_round][_tableId];
+        uint16 winnersMask =
+            uint16(2)**tbl.winningNumbers[0] +
+                uint16(2)**tbl.winningNumbers[1] +
+                uint16(2)**tbl.winningNumbers[2];
+        for (uint256 i = 0; i < j.betId.length; i++) {
+            Betting storage jBet = betInfo[j.betId[i]];
+            if ((jBet.boxChoice & winnersMask) == winnersMask) {
+                j.winners.push(jBet.player);
+            }
+        }
+
+        j.award = j.pot.div(j.winners.length);
         /* round amount, send any changes to housevault */
+        j.award = _roundNumber(j.award, (8 - rounding)); /* ECOC has 8 decimals */
+        uint256 change = j.pot.sub(j.award.mul(j.winners.length));
+        j.pot = j.pot.sub(change);
+        houseVault.add(change);
+
+        /* set jackpot table as arranged */
+        j.arranged = true;
     }
 
     /**
