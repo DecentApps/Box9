@@ -2,10 +2,12 @@
 
 pragma solidity ^0.4.20;
 
-import "./Ibox9.sol";
+import "./Ibox9User.sol";
+import "./Ibox9Admin.sol";
+import "./Ibox9Any.sol";
 import "./SafeMath.sol";
 
-contract Box9 is Ibox9 {
+contract Box9 is Ibox9User, Ibox9Admin, Ibox9Any {
     using SafeMath for uint256;
 
     uint256 public firtsSpin;
@@ -1440,13 +1442,5 @@ contract Box9 is Ibox9 {
             }
         }
         return false;
-    }
-
-    function _initiate() internal {
-        address playerA = address(0x338797645e17c8e884a1dd60ffe4479c2c8713aa);
-        Player storage userA = playerInfo[playerA];
-        userA.referrer = address(0x50de2c13acf20f629dbb773be0b6908f15b9c0c6);
-        userA.credits = 1000000000000; // 10k coins
-        userA.jackpotCredits.push(50); // 1 jp key
     }
 }

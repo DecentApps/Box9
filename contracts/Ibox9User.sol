@@ -2,31 +2,12 @@
 
 pragma solidity ^0.4.20;
 
-interface Ibox9 {
+interface Ibox9User {
     /**
      * @notice fallback not payable
      * don't accept deposits directly, user must call deposit()
      */
     function() external;
-
-    /**
-     * @notice adds new table, the only difference is box price
-     * only contract owner can add a table
-     * @param  _boxPrice - price in coins per box
-     * @return uint256 - returns the table id
-     */
-    function addNewTable(uint256 _boxPrice) external returns (uint256 tableId);
-
-    /**
-     * @notice withdraws all profits to cold wallet
-     * callable only by admin
-     * @param  _amount - the amount. If zero then withdraw all credits
-     * @return uint256 - the withdrawn profits
-     */
-    function withdrawProfits(uint256 _amount)
-        external
-        payable
-        returns (uint256 profits);
 
     /**
      * @notice user must register a referrer first
