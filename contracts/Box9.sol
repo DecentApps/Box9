@@ -1287,16 +1287,23 @@ contract Box9 is Ibox9User, Ibox9Admin, Ibox9Any {
      * @param _tableId - the table index
      * @return bool - false if not arranged yet
      * @return uint256 - the amount in jackpot
+     * @return uint256 - how many winners
+     * @return uint256 - prize amount
      */
     function getjackpotInfo(uint256 _round, uint256 _tableId)
         external
         view
         tableExists(_tableId)
-        returns (bool status, uint256 potAmount)
+        returns (
+            bool status,
+            uint256 potAmount,
+            uint256 winners,
+            uint256 prize
+        )
     {
         Jackpot storage j = jackpotInfo[_round][_tableId];
 
-        return (j.arranged, j.pot);
+        return (j.arranged, j.pot, j.winners.length, j.award);
     }
 
     /**
