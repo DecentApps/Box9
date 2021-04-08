@@ -123,6 +123,12 @@ contract Box9 is Ibox9User, Ibox9Admin, Ibox9Any {
         uint256 table,
         uint256 amount
     );
+    event ClaimJackpotPrize(
+        address winner,
+        uint256 round,
+        uint256 table,
+        uint256 jPrize
+    );
     event JoinJackpot(address player, uint256 round, uint256 betId);
 
     event UpdateRoundState(uint256 blocknumber, uint256 hash);
@@ -1132,6 +1138,8 @@ contract Box9 is Ibox9User, Ibox9Admin, Ibox9Any {
 
         /* update Jackpot state */
         Jackpot storage j = jackpotInfo[_round][_tableId];
+        require(!j.arranged);
+
         uint16 winnersMask =
             uint16(2)**tbl.winningNumbers[0] +
                 uint16(2)**tbl.winningNumbers[1] +
@@ -1143,21 +1151,29 @@ contract Box9 is Ibox9User, Ibox9Admin, Ibox9Any {
             }
         }
 
-        j.award = j.pot.div(j.winners.length);
-        /* round amount, send any changes to housevault */
-        j.award = _roundNumber(j.award, (8 - rounding)); /* ECOC has 8 decimals */
-        uint256 change = j.pot.sub(j.award.mul(j.winners.length));
-        j.pot = j.pot.sub(change);
-        houseVault.add(change);
+        if (j.winners.length > 0) {
+            j.award = j.pot.div(j.winners.length);
+            /* round amount, send any changes to housevault */
+            j.award = _roundNumber(j.award, (8 - rounding)); /* ECOC has 8 decimals */
+            uint256 change = j.pot.sub(j.award.mul(j.winners.length));
+            j.pot = j.pot.sub(change);
+            houseVault.add(change);
+        } else {
+            /* no winner, move the pot to the next jackpot spin */
+            uint256 nextSpin = _getNextJackpotRound(_round);
+            Jackpot storage nextJackpot = jackpotInfo[nextSpin][_tableId];
+            nextJackpot.pot = j.pot;
+            j.pot = 0;
+        }
 
-        /* set jackpot table as arranged */
-        j.arranged = true;
         emit UpdateJackpotTableState(
             _round,
             _tableId,
             j.award,
             j.winners.length
         );
+        /* set jackpot table as arranged */
+        j.arranged = true;
 
         return (j.award, j.winners.length);
     }
