@@ -1432,6 +1432,65 @@ contract Box9 is Ibox9User, Ibox9Admin, Ibox9Any {
     }
 
     /**
+     * @notice gives jackpot prize to player - can be triggered only by player
+     * @param _round - block height
+     * @param _tableId - the table index
+     * @return uint256 - returns the jackpot prize
+     */
+    function claimJackpotPrize(uint256 _round, uint256 _tableId)
+        external
+        tableExists(_tableId)
+        isPlayer(msg.sender)
+        returns (uint256 prize)
+    {
+        Jackpot storage j = jackpotInfo[_round][_tableId];
+        require(j.arranged);
+
+        /* find the bet id */
+        Player storage pl = playerInfo[msg.sender];
+
+        for (uint256 i = pl.betIds.length - 1; i != 0; --i) {
+            Betting storage nBet = betInfo[pl.betIds[i]];
+            if ((nBet.round == _round) && (nBet.tableIndex == _tableId)) {
+                uint256 betId = nBet.id;
+                break;
+            }
+            /* if no normal bettor, revert */
+            revert();
+        }
+
+        require(nBet.player == msg.sender);
+        require(nBet.round < block.number); /* reduntant */
+
+        /* check if player hits the jackpot */
+
+        for (i = 0; i < j.betId.length; i++) {
+            if (j.betId[i] == betId) {
+                /* ok, player has joinned jackpot and also never got his prize */
+                uint256 jBetIndex = i;
+                break;
+            }
+            /* no jackpot joiner*/
+            revert();
+        }
+
+        /* if no winner, revert */
+        require(_addressExists(j.winners, msg.sender));
+
+        /* transfer credits from pot to player */
+        j.pot = j.pot.sub(j.award);
+        pl.credits = pl.credits.add(j.award);
+
+        /* remove bet id from jackpot table to mark prize as claimed */
+        j.betId[jBetIndex] = 0;
+
+        /* emit event */
+        emit ClaimJackpotPrize(msg.sender, _round, _tableId, j.award);
+
+        return j.award;
+    }
+
+    /**
      * @notice returns how many keys and how many more boxes are needed for next key
      * @param  _player - player's address
      * @param  _tableId - table index
