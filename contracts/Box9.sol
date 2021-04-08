@@ -27,10 +27,7 @@ contract Box9 is Ibox9 {
     uint256[] private tables;
     uint256 private nextBet;
 
-    bool private debugFlag;
-    uint256[] private debugInfo;
-
-    function Box9(address _houseWallet, bool _debug) public {
+    function Box9(address _houseWallet) public {
         admin = msg.sender;
         houseWallet = _houseWallet;
         nextBet = 1;
@@ -44,12 +41,6 @@ contract Box9 is Ibox9 {
 
         /* save first round */
         firtsSpin = _getNextRound();
-
-        debugFlag = _debug;
-
-        if (debugFlag) {
-            _initiate();
-        }
     }
 
     struct Player {
@@ -1457,9 +1448,5 @@ contract Box9 is Ibox9 {
         userA.referrer = address(0x50de2c13acf20f629dbb773be0b6908f15b9c0c6);
         userA.credits = 1000000000000; // 10k coins
         userA.jackpotCredits.push(50); // 1 jp key
-    }
-
-    function getDebugInfo() external view returns (uint256[]) {
-        return debugInfo;
     }
 }
