@@ -1324,6 +1324,24 @@ contract Box9 is Ibox9User, Ibox9Admin, Ibox9Any {
     }
 
     /**
+     * @notice returns jackpot wiiners if table already arranged
+     * @param _round - block height
+     * @param _tableId - the table index
+     * @return address[] - addresses of winners
+     */
+    function showJackpotWinners(uint256 _round, uint256 _tableId)
+        external
+        view
+        tableExists(_tableId)
+        returns (address[] winners)
+    {
+        Jackpot storage j = jackpotInfo[_round][_tableId];
+        require(j.arranged);
+
+        return (j.winners);
+    }
+
+    /**
      * @notice returns jackpot bet ids
      * @param _round - block height
      * @param _tableId - the table index

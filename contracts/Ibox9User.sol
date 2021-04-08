@@ -188,6 +188,17 @@ interface Ibox9User {
         returns (address[] joiners);
 
     /**
+     * @notice returns jackpot wiiners if table already arranged
+     * @param _round - block height
+     * @param _tableId - the table index
+     * @return address[] - addresses of winners
+     */
+    function showJackpotWinners(uint256 _round, uint256 _tableId)
+        external
+        view
+        returns (address[] winners);
+
+    /**
      * @notice returns jackpot bet ids
      * @param _round - block height
      * @param _tableId - the table index
