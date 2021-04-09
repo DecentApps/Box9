@@ -28,6 +28,7 @@ contract Box9 is Ibox9User, Ibox9Admin, Ibox9Any {
     uint256 private houseVault;
     uint256[] private tables;
     uint256 private nextBet;
+    uint256 private nextJackpot;
 
     bool private debugFlag;
     uint256[] private debugInfo;
@@ -46,6 +47,7 @@ contract Box9 is Ibox9User, Ibox9Admin, Ibox9Any {
 
         /* save first round */
         firtsSpin = _getNextRound();
+        nextJackpot = _computeNextJackpotRound(block.number);
 
         debugFlag = _debug;
 
@@ -402,7 +404,7 @@ contract Box9 is Ibox9User, Ibox9Admin, Ibox9Any {
         returns (uint256 round)
     {
         uint256 nRound = _getNextRound();
-        uint256 jRound = _getNextJackpotRound(block.number);
+        uint256 jRound = nextJackpot;
         require(nRound == jRound);
 
         Player storage pl = playerInfo[msg.sender];
@@ -822,7 +824,7 @@ contract Box9 is Ibox9User, Ibox9Admin, Ibox9Any {
      * @param _round - the next jackpot after this round
      * @return uint256 - the block height of next jackpot
      */
-    function _getNextJackpotRound(uint256 _round)
+    function _computeNextJackpotRound(uint256 _round)
         internal
         pure
         returns (uint256 blockHeight)
@@ -841,15 +843,10 @@ contract Box9 is Ibox9User, Ibox9Admin, Ibox9Any {
 
     /**
      * @notice returns block height for next jackpot(external)
-     * @param _round - the next jackpot after this round
      * @return uint256 - the block height of next jackpot
      */
-    function getNextJackpotSpin(uint256 _round)
-        external
-        pure
-        returns (uint256 blockHeight)
-    {
-        return _getNextJackpotRound(_round);
+    function getNextJackpotSpin() external view returns (uint256 blockHeight) {
+        return nextJackpot;
     }
 
     /**
@@ -1025,7 +1022,7 @@ contract Box9 is Ibox9User, Ibox9Admin, Ibox9Any {
         tbl.winningNumbers = _winningBoxes(_round, _tableId);
 
         /* compute and save all rewards awards */
-        uint256 jRound = _getNextJackpotRound(_round);
+        uint256 jRound = nextJackpot;
 
         Jackpot storage j = jackpotInfo[jRound][_tableId];
 
@@ -1138,9 +1135,6 @@ contract Box9 is Ibox9User, Ibox9Admin, Ibox9Any {
         external
         returns (uint256 award, uint256 winners)
     {
-        /* check if jackpot table is already arranged*/
-        require(_round.mod(jackpotSession) == 0);
-
         /* check if normal table is arranged */
         Table storage tbl = tableInfo[_round][_tableId];
         require(tbl.players.length > 0 && !tbl.open);
@@ -1167,11 +1161,13 @@ contract Box9 is Ibox9User, Ibox9Admin, Ibox9Any {
             uint256 change = j.pot.sub(j.award.mul(j.winners.length));
             j.pot = j.pot.sub(change);
             houseVault.add(change);
+            nextJackpot = _computeNextJackpotRound(_round);
         } else {
             /* no winner, move the pot to the next jackpot spin */
-            uint256 nextSpin = _getNextJackpotRound(_round);
-            Jackpot storage nextJackpot = jackpotInfo[nextSpin][_tableId];
-            nextJackpot.pot = j.pot;
+            uint256 nextSpin = _getNextRound();
+            nextJackpot = nextSpin;
+            Jackpot storage nextJ = jackpotInfo[nextSpin][_tableId];
+            nextJ.pot = j.pot;
             j.pot = 0;
         }
 
