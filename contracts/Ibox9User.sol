@@ -412,7 +412,7 @@ interface Ibox9User {
         uint256 _tableId,
         uint256 amount
     );
-    event WithdrawProfitsEvent(uint256 profits);
+    
     event ClaimReward(
         address winner,
         uint256 round,
