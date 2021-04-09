@@ -28,7 +28,7 @@ contract Box9 is Ibox9User, Ibox9Admin, Ibox9Any {
     uint256 private houseVault;
     uint256[] private tables;
     uint256 private nextBet;
-    uint256 private nextJackpot;
+    uint256[] private nextJackpot;
 
     bool private debugFlag;
     uint256[] private debugInfo;
@@ -47,8 +47,11 @@ contract Box9 is Ibox9User, Ibox9Admin, Ibox9Any {
 
         /* save first round */
         firtsSpin = _getNextRound();
-        nextJackpot = _computeNextJackpotRound(block.number);
+        uint256 firstJackpotSpin = _computeNextJackpotRound(block.number);
 
+        for (uint256 i = 0; i < nextJackpot.length; i++) {
+            nextJackpot[i] = firstJackpotSpin;
+        }
         debugFlag = _debug;
 
         if (debugFlag) {
@@ -404,7 +407,7 @@ contract Box9 is Ibox9User, Ibox9Admin, Ibox9Any {
         returns (uint256 round)
     {
         uint256 nRound = _getNextRound();
-        uint256 jRound = nextJackpot;
+        uint256 jRound = nextJackpot[_tableId];
         require(nRound == jRound);
 
         Player storage pl = playerInfo[msg.sender];
@@ -843,10 +846,16 @@ contract Box9 is Ibox9User, Ibox9Admin, Ibox9Any {
 
     /**
      * @notice returns block height for next jackpot(external)
+     * @param  _tableId - table index
      * @return uint256 - the block height of next jackpot
      */
-    function getNextJackpotSpin() external view returns (uint256 blockHeight) {
-        return nextJackpot;
+    function getNextJackpotSpin(uint256 _tableId)
+        external
+        view
+        tableExists(_tableId)
+        returns (uint256 blockHeight)
+    {
+        return nextJackpot[_tableId];
     }
 
     /**
@@ -1022,7 +1031,7 @@ contract Box9 is Ibox9User, Ibox9Admin, Ibox9Any {
         tbl.winningNumbers = _winningBoxes(_round, _tableId);
 
         /* compute and save all rewards awards */
-        uint256 jRound = nextJackpot;
+        uint256 jRound = nextJackpot[_tableId];
 
         Jackpot storage j = jackpotInfo[jRound][_tableId];
 
@@ -1161,11 +1170,11 @@ contract Box9 is Ibox9User, Ibox9Admin, Ibox9Any {
             uint256 change = j.pot.sub(j.award.mul(j.winners.length));
             j.pot = j.pot.sub(change);
             houseVault.add(change);
-            nextJackpot = _computeNextJackpotRound(_round);
+            nextJackpot[_tableId] = _computeNextJackpotRound(_round);
         } else {
             /* no winner, move the pot to the next jackpot spin */
             uint256 nextSpin = _getNextRound();
-            nextJackpot = nextSpin;
+            nextJackpot[_tableId] = nextSpin;
             Jackpot storage nextJ = jackpotInfo[nextSpin][_tableId];
             nextJ.pot = j.pot;
             j.pot = 0;

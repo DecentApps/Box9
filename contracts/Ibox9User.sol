@@ -393,9 +393,10 @@ interface Ibox9User {
 
     /**
      * @notice returns block height for next jackpot(external)
+     * @param  _tableId - table index
      * @return uint256 - the block height of next jackpot
      */
-    function getNextJackpotSpin()
+    function getNextJackpotSpin(uint256 _tableId)
         external
         view
         returns (uint256 blockHeight);
