@@ -49,8 +49,8 @@ contract Box9 is Ibox9User, Ibox9Admin, Ibox9Any {
         firtsSpin = _getNextRound();
         uint256 firstJackpotSpin = _computeNextJackpotRound(block.number);
 
-        for (uint256 i = 0; i < nextJackpot.length; i++) {
-            nextJackpot[i] = firstJackpotSpin;
+        for (uint256 i = 0; i < tables.length; i++) {
+            nextJackpot.push(firstJackpotSpin);
         }
         debugFlag = _debug;
 
@@ -190,6 +190,7 @@ contract Box9 is Ibox9User, Ibox9Admin, Ibox9Any {
     {
         require(_boxPrice > 0);
         tables.push(_boxPrice);
+        nextJackpot.push(_computeNextJackpotRound(block.number));
         return (tables.length - 1);
     }
 
@@ -427,14 +428,15 @@ contract Box9 is Ibox9User, Ibox9Admin, Ibox9Any {
 
         /* find the correct bet id for this table */
         uint256 nBetId;
-        for (uint256 i = pl.betIds.length - 1; i != 0; --i) {
-            Betting storage nBet = betInfo[pl.betIds[i]];
+        for (uint256 i = 0; i < pl.betIds.length; i++) {
+            Betting storage nBet = betInfo[pl.betIds[pl.betIds.length + i - 1]];
             if ((nBet.round == nRound) && (nBet.tableIndex == _tableId)) {
                 nBetId = nBet.id;
                 break;
             }
         }
         require(nBetId != 0);
+
         j.betId.push(nBetId);
 
         emit JoinJackpot(msg.sender, jRound, nBetId);
