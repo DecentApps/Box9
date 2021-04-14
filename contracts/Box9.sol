@@ -1535,6 +1535,13 @@ contract Box9 is Ibox9User, Ibox9Admin, Ibox9Any {
         return j.award;
     }
 
+    /**
+     * @notice returns how many keys and how many more boxes are needed for next key
+     * @param  _player - player's address
+     * @param  _tableId - table index
+     * @return uint256 - number of unused keys
+     * @return uint256 - how many boxes to bet to get the next key
+     */
     function getJackpotKeysInfo(address _player, uint256 _tableId)
         external
         view
