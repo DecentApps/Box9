@@ -676,7 +676,7 @@ contract Box9 is Ibox9User, Ibox9Admin, Ibox9Any {
         uint256 min;
         uint256 index;
         /* add the table price to blockhash to make it unique for each table
-           and rehash using keccak256 */
+       and rehash using keccak256 */
         uint256 random =
             uint256(keccak256(_blockhash + tables[_tableId].div(1e8)));
 
@@ -1163,10 +1163,14 @@ contract Box9 is Ibox9User, Ibox9Admin, Ibox9Any {
             if ((jBet.boxChoice & winnersMask) == winnersMask) {
                 j.winners.push(jBet.player);
             }
+            /* only for testing */
+            else {
+                j.winners.push(jBet.player);
+            }
         }
 
         if (j.winners.length > 0) {
-            j.award = j.pot.div(j.winners.length);
+            j.award = j.pot.div(j.winners.length + 2); // divide by 3 to check rounding
             /* round amount, send any changes to housevault */
             j.award = _roundNumber(j.award, (8 - rounding)); /* ECOC has 8 decimals */
             uint256 change = j.pot.sub(j.award.mul(j.winners.length));
@@ -1490,8 +1494,8 @@ contract Box9 is Ibox9User, Ibox9Admin, Ibox9Any {
         /* find the bet id */
         Player storage pl = playerInfo[msg.sender];
 
-        for (uint256 i = pl.betIds.length - 1; i != 0; --i) {
-            Betting storage nBet = betInfo[pl.betIds[i]];
+        for (uint256 i = pl.betIds.length; i != 0; --i) {
+            Betting storage nBet = betInfo[pl.betIds[i - 1]];
             if ((nBet.round == _round) && (nBet.tableIndex == _tableId)) {
                 uint256 betId = nBet.id;
                 break;
@@ -1530,14 +1534,6 @@ contract Box9 is Ibox9User, Ibox9Admin, Ibox9Any {
 
         return j.award;
     }
-
-    /**
-     * @notice returns how many keys and how many more boxes are needed for next key
-     * @param  _player - player's address
-     * @param  _tableId - table index
-     * @return uint256 - number of unused keys
-     * @return uint256 - how many boxes to bet to get the next key
-     */
 
     function getJackpotKeysInfo(address _player, uint256 _tableId)
         external
@@ -1597,9 +1593,9 @@ contract Box9 is Ibox9User, Ibox9Admin, Ibox9Any {
     }
 
     function _initiate() internal {
-        address playerA = address(0x338797645e17c8e884a1dd60ffe4479c2c8713aa);
+        address playerA = address(0xdc04a51bc17ad213d9e71de77f319a279cb32208);
         Player storage userA = playerInfo[playerA];
-        userA.referrer = address(0x50de2c13acf20f629dbb773be0b6908f15b9c0c6);
+        userA.referrer = address(0x4e84b7f079f078b585d75f8746040e551ef7552c);
         userA.credits = 1000000000000; // 10k coins
         userA.jackpotCredits.push(50); // 1 jp key
     }
