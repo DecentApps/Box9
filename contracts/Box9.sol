@@ -1474,8 +1474,8 @@ contract Box9 is Ibox9User, Ibox9Admin, Ibox9Any {
         /* find the bet id */
         Player storage pl = playerInfo[msg.sender];
 
-        for (uint256 i = pl.betIds.length - 1; i != 0; --i) {
-            Betting storage nBet = betInfo[pl.betIds[i]];
+        for (uint256 i = pl.betIds.length; i != 0; --i) {
+            Betting storage nBet = betInfo[pl.betIds[i-1]];
             if ((nBet.round == _round) && (nBet.tableIndex == _tableId)) {
                 uint256 betId = nBet.id;
                 break;
