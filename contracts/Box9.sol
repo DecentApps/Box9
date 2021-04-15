@@ -20,7 +20,7 @@ contract Box9 is Ibox9User, Ibox9Admin, Ibox9Any {
     uint256 private constant jackpotReward = 50;
     uint256 private constant jackpotKeyCost = 50; /* how many credits per key*/
     uint256 private constant session = 10; /* blocks between spins */
-    uint256 private constant jackpotSession = 20; /* blocks between jackpots */
+    uint256 private constant jackpotSession = 10000; /* blocks between jackpots */
     address private constant zeroAddress = address(0x0);
 
     address private admin;
@@ -997,6 +997,27 @@ contract Box9 is Ibox9User, Ibox9Admin, Ibox9Any {
         emit UpdateRoundState(_blocknumber, _blockhash);
 
         return true;
+    }
+
+    /**
+     * @notice change the jackpot round if already passed and not updated - admin only
+     * @param  _blocknumber the block height of the passed(not arranged) jackpot round
+     * @param  _tableId the table
+     */
+    function fixNextJackpotRound(uint256 _blocknumber, uint256 _tableId)
+        external
+        isAdmin()
+        tableExists(_tableId)
+    {
+        require(_blocknumber < block.number);
+        Jackpot storage j = jackpotInfo[_blocknumber][_tableId];
+        require(!j.arranged);
+        /* fix the next jackpot */
+        nextJackpot[_tableId] = _computeNextJackpotRound(block.number);
+        Jackpot storage newJ = jackpotInfo[nextJackpot[_tableId]][_tableId];
+        /* move the pot*/
+        newJ.pot = j.pot;
+        j.pot = 0;
     }
 
     /**

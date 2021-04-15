@@ -43,7 +43,8 @@ interface Ibox9Admin {
      * @param  _blocknumber the block height of the jackpot round
      * @param  _tableId the table
      */
-    function fixNextJackpotRound(uint256 _blocknumber) external;
+    function fixNextJackpotRound(uint256 _blocknumber, uint256 _tableId)
+        external;
 
     event WithdrawProfitsEvent(uint256 profits);
 }
