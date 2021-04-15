@@ -28,6 +28,7 @@ contract Box9 is Ibox9User, Ibox9Admin, Ibox9Any {
     uint256 private houseVault;
     uint256[] private tables;
     uint256 private nextBet;
+    uint256[] private nextJackpot;
 
     function Box9(address _houseWallet) public {
         admin = msg.sender;
@@ -43,6 +44,11 @@ contract Box9 is Ibox9User, Ibox9Admin, Ibox9Any {
 
         /* save first round */
         firtsSpin = _getNextRound();
+        uint256 firstJackpotSpin = _computeNextJackpotRound(block.number);
+
+        for (uint256 i = 0; i < tables.length; i++) {
+            nextJackpot.push(firstJackpotSpin);
+        }
     }
 
     struct Player {
@@ -176,6 +182,7 @@ contract Box9 is Ibox9User, Ibox9Admin, Ibox9Any {
     {
         require(_boxPrice > 0);
         tables.push(_boxPrice);
+        nextJackpot.push(_computeNextJackpotRound(block.number));
         return (tables.length - 1);
     }
 
@@ -393,7 +400,7 @@ contract Box9 is Ibox9User, Ibox9Admin, Ibox9Any {
         returns (uint256 round)
     {
         uint256 nRound = _getNextRound();
-        uint256 jRound = _getNextJackpotRound(block.number);
+        uint256 jRound = nextJackpot[_tableId];
         require(nRound == jRound);
 
         Player storage pl = playerInfo[msg.sender];
@@ -413,14 +420,15 @@ contract Box9 is Ibox9User, Ibox9Admin, Ibox9Any {
 
         /* find the correct bet id for this table */
         uint256 nBetId;
-        for (uint256 i = pl.betIds.length - 1; i != 0; --i) {
-            Betting storage nBet = betInfo[pl.betIds[i]];
+        for (uint256 i = 0; i < pl.betIds.length; i++) {
+            Betting storage nBet = betInfo[pl.betIds[pl.betIds.length + i - 1]];
             if ((nBet.round == nRound) && (nBet.tableIndex == _tableId)) {
                 nBetId = nBet.id;
                 break;
             }
         }
         require(nBetId != 0);
+
         j.betId.push(nBetId);
 
         emit JoinJackpot(msg.sender, jRound, nBetId);
@@ -660,7 +668,7 @@ contract Box9 is Ibox9User, Ibox9Admin, Ibox9Any {
         uint256 min;
         uint256 index;
         /* add the table price to blockhash to make it unique for each table
-           and rehash using keccak256 */
+       and rehash using keccak256 */
         uint256 random =
             uint256(keccak256(_blockhash + tables[_tableId].div(1e8)));
 
@@ -813,7 +821,7 @@ contract Box9 is Ibox9User, Ibox9Admin, Ibox9Any {
      * @param _round - the next jackpot after this round
      * @return uint256 - the block height of next jackpot
      */
-    function _getNextJackpotRound(uint256 _round)
+    function _computeNextJackpotRound(uint256 _round)
         internal
         pure
         returns (uint256 blockHeight)
@@ -832,15 +840,16 @@ contract Box9 is Ibox9User, Ibox9Admin, Ibox9Any {
 
     /**
      * @notice returns block height for next jackpot(external)
-     * @param _round - the next jackpot after this round
+     * @param  _tableId - table index
      * @return uint256 - the block height of next jackpot
      */
-    function getNextJackpotSpin(uint256 _round)
+    function getNextJackpotSpin(uint256 _tableId)
         external
-        pure
+        view
+        tableExists(_tableId)
         returns (uint256 blockHeight)
     {
-        return _getNextJackpotRound(_round);
+        return nextJackpot[_tableId];
     }
 
     /**
@@ -1016,7 +1025,7 @@ contract Box9 is Ibox9User, Ibox9Admin, Ibox9Any {
         tbl.winningNumbers = _winningBoxes(_round, _tableId);
 
         /* compute and save all rewards awards */
-        uint256 jRound = _getNextJackpotRound(_round);
+        uint256 jRound = nextJackpot[_tableId];
 
         Jackpot storage j = jackpotInfo[jRound][_tableId];
 
@@ -1129,9 +1138,6 @@ contract Box9 is Ibox9User, Ibox9Admin, Ibox9Any {
         external
         returns (uint256 award, uint256 winners)
     {
-        /* check if jackpot table is already arranged*/
-        require(_round.mod(jackpotSession) == 0);
-
         /* check if normal table is arranged */
         Table storage tbl = tableInfo[_round][_tableId];
         require(tbl.players.length > 0 && !tbl.open);
@@ -1158,11 +1164,13 @@ contract Box9 is Ibox9User, Ibox9Admin, Ibox9Any {
             uint256 change = j.pot.sub(j.award.mul(j.winners.length));
             j.pot = j.pot.sub(change);
             houseVault.add(change);
+            nextJackpot[_tableId] = _computeNextJackpotRound(_round);
         } else {
             /* no winner, move the pot to the next jackpot spin */
-            uint256 nextSpin = _getNextJackpotRound(_round);
-            Jackpot storage nextJackpot = jackpotInfo[nextSpin][_tableId];
-            nextJackpot.pot = j.pot;
+            uint256 nextSpin = _getNextRound();
+            nextJackpot[_tableId] = nextSpin;
+            Jackpot storage nextJ = jackpotInfo[nextSpin][_tableId];
+            nextJ.pot = j.pot;
             j.pot = 0;
         }
 
@@ -1475,7 +1483,7 @@ contract Box9 is Ibox9User, Ibox9Admin, Ibox9Any {
         Player storage pl = playerInfo[msg.sender];
 
         for (uint256 i = pl.betIds.length; i != 0; --i) {
-            Betting storage nBet = betInfo[pl.betIds[i-1]];
+            Betting storage nBet = betInfo[pl.betIds[i - 1]];
             if ((nBet.round == _round) && (nBet.tableIndex == _tableId)) {
                 uint256 betId = nBet.id;
                 break;
@@ -1522,7 +1530,6 @@ contract Box9 is Ibox9User, Ibox9Admin, Ibox9Any {
      * @return uint256 - number of unused keys
      * @return uint256 - how many boxes to bet to get the next key
      */
-
     function getJackpotKeysInfo(address _player, uint256 _tableId)
         external
         view

@@ -393,12 +393,12 @@ interface Ibox9User {
 
     /**
      * @notice returns block height for next jackpot(external)
-     * @param _round - the next jackpot after this round
+     * @param  _tableId - table index
      * @return uint256 - the block height of next jackpot
      */
-    function getNextJackpotSpin(uint256 _round)
+    function getNextJackpotSpin(uint256 _tableId)
         external
-        pure
+        view
         returns (uint256 blockHeight);
 
     /* Events */
@@ -412,7 +412,7 @@ interface Ibox9User {
         uint256 _tableId,
         uint256 amount
     );
-    
+
     event ClaimReward(
         address winner,
         uint256 round,
