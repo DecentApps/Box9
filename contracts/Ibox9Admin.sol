@@ -40,10 +40,9 @@ interface Ibox9Admin {
 
     /**
      * @notice change the jackpot round if already passed and not updated - admin only
-     * @param  _blocknumber the block height of the jackpot round
      * @param  _tableId the table
      */
-    function fixNextJackpotRound(uint256 _blocknumber, uint256 _tableId)
+    function fixNextJackpotRound(uint256 _tableId)
         external;
 
     event WithdrawProfitsEvent(uint256 profits);

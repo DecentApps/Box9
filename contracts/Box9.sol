@@ -1001,16 +1001,16 @@ contract Box9 is Ibox9User, Ibox9Admin, Ibox9Any {
 
     /**
      * @notice change the jackpot round if already passed and not updated - admin only
-     * @param  _blocknumber the block height of the passed(not arranged) jackpot round
      * @param  _tableId the table
      */
-    function fixNextJackpotRound(uint256 _blocknumber, uint256 _tableId)
+    function fixNextJackpotRound(uint256 _tableId)
         external
         isAdmin()
         tableExists(_tableId)
     {
-        require(_blocknumber < block.number);
-        Jackpot storage j = jackpotInfo[_blocknumber][_tableId];
+        uint256 blocknumber = nextJackpot[_tableId];
+        require(blocknumber < block.number);
+        Jackpot storage j = jackpotInfo[blocknumber][_tableId];
         require(!j.arranged);
         /* fix the next jackpot */
         nextJackpot[_tableId] = _computeNextJackpotRound(block.number);
