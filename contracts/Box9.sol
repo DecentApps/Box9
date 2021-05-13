@@ -914,6 +914,8 @@ contract Box9 is Ibox9User, Ibox9Admin, Ibox9Any {
         } else {
             r.requireFix = true;
         }
+
+        emit UpdateRoundState(_blocknumber, result);
         return result;
     }
 
