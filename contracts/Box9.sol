@@ -1145,6 +1145,7 @@ contract Box9 is Ibox9User, Ibox9Admin, Ibox9Any {
 
         tbl.open = false;
 
+        emit UpdateTableState(_round, _tableId);
         return true;
     }
 
