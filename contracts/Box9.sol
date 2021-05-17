@@ -10,7 +10,7 @@ import "./SafeMath.sol";
 contract Box9 is Ibox9User, Ibox9Admin, Ibox9Any {
     using SafeMath for uint256;
 
-    uint256 public firtsSpin;
+    uint256 public firstSpin;
 
     uint256 private constant precision = 3; /* decimal places for mantissa */
     uint256 private constant rounding = 2; /* round down the number for winnings for user friendliness*/
@@ -43,7 +43,7 @@ contract Box9 is Ibox9User, Ibox9Admin, Ibox9Any {
         tables.push(1000 * 1e8);
 
         /* save first round */
-        firtsSpin = _getNextRound();
+        firstSpin = _getNextRound();
         uint256 firstJackpotSpin = _computeNextJackpotRound(block.number);
 
         for (uint256 i = 0; i < tables.length; i++) {
