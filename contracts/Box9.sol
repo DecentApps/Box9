@@ -301,12 +301,12 @@ contract Box9 is Ibox9User, Ibox9Admin, Ibox9Any {
         round = _getNextRound();
 
         /* use bonus first */
-        uint256 minR = pl.rewards;
-        if (minR > amount) {
-            minR = amount;
+        uint256 bonus = pl.rewards;
+        if (bonus > amount) {
+            bonus = amount;
         }
-        pl.rewards = pl.rewards.sub(minR);
-        pl.credits = pl.credits.add(minR);
+        pl.rewards = pl.rewards.sub(bonus);
+        pl.credits = pl.credits.add(bonus);
 
         /* decrease credits */
         pl.credits = pl.credits.sub(amount);
@@ -340,7 +340,7 @@ contract Box9 is Ibox9User, Ibox9Admin, Ibox9Any {
         pl.jackpotCredits[_tableId] = pl.jackpotCredits[_tableId].add(quantity);
 
         /* give the bonus to referrer */
-        uint256 bonus = amount.mul(referralReward);
+        bonus = amount.mul(referralReward);
         bonus = bonus.div(10**precision);
         if (pl.referrer == houseWallet) {
             houseVault = houseVault.add(bonus);
