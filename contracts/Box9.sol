@@ -276,13 +276,14 @@ contract Box9 is Ibox9User, Ibox9Admin, Ibox9Any {
      * Also, bettor opens(initiates) the table if he is the first bettor
      * @param  _chosenBoxes - 9 lowest bits show the boxes he has chosen
      * @param  _tableId - the table
+     * @param  _joinJackpot - boolean if the player wishes to join the jp
      * @return uint256 - the next blockheigh for the box spin
      */
-    function chooseBoxes(uint16 _chosenBoxes, uint256 _tableId)
-        external
-        isPlayer(msg.sender)
-        returns (uint256 round)
-    {
+    function chooseBoxes(
+        uint16 _chosenBoxes,
+        uint256 _tableId,
+        bool _joinJackpot
+    ) external isPlayer(msg.sender) returns (uint256 round) {
         require(_tableId < tables.length);
         uint8 quantity;
         quantity = _checkValidity(_chosenBoxes);
@@ -351,6 +352,14 @@ contract Box9 is Ibox9User, Ibox9Admin, Ibox9Any {
         /* emit event */
         emit BetEvent(bet.id, msg.sender, round, _tableId, amount);
 
+        /* also join jackpot table */
+        if (
+            _joinJackpot &&
+            (nextJackpot[_tableId] == _getNextRound()) &&
+            (pl.jackpotCredits[_tableId] >= jackpotKeyCost)
+        ) {
+            joinJackpot(_tableId);
+        }
         return round;
     }
 
@@ -395,7 +404,7 @@ contract Box9 is Ibox9User, Ibox9Admin, Ibox9Any {
      * @return round - the jackpot round
      */
     function joinJackpot(uint256 _tableId)
-        external
+        internal
         isPlayer(msg.sender)
         returns (uint256 round)
     {

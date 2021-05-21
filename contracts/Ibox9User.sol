@@ -52,11 +52,14 @@ interface Ibox9User {
      * Transaction reverts if not enough coins in his account
      * @param  _chosenBoxes - 9 lowest bits show the boxes he has chosen
      * @param  _tableId - the table
+     * @param  _joinJackpot - boolean if the player wishes to join the jp
      * @return uint256 - the next blockheigh for the box spin
      */
-    function chooseBoxes(uint16 _chosenBoxes, uint256 _tableId)
-        external
-        returns (uint256 round);
+    function chooseBoxes(
+        uint16 _chosenBoxes,
+        uint256 _tableId,
+        bool _joinJackpot
+    ) external returns (uint256 round);
 
     /**
      * @notice use a key to join the jackpot spin
@@ -64,7 +67,7 @@ interface Ibox9User {
      * @param  _tableId - the table id
      * @return round - the jackpot round
      */
-    function joinJackpot(uint256 _tableId) external returns (uint256 round);
+    //function joinJackpot(uint256 _tableId) external returns (uint256 round);
 
     /**
      * @notice shows current players and betting amounts for a table
