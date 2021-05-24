@@ -960,11 +960,11 @@ contract Box9 is Ibox9User, Ibox9Admin, Ibox9Any {
         returns (bool arranged)
     {
         Table storage tbl = tableInfo[_round][_tableId];
-        if (tbl.players.length > 0 && !tbl.open) {
-            return true;
-        } else {
+        if(tbl.players.length ==0) {
+            /* table never used */
             return false;
-        }
+            }
+        return !tbl.open;
     }
 
     /**
