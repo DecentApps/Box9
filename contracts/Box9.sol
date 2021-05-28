@@ -960,6 +960,10 @@ contract Box9 is Ibox9User, Ibox9Admin, Ibox9Any {
         returns (bool arranged)
     {
         Table storage tbl = tableInfo[_round][_tableId];
+        /* if call takes place to soon, table isn't arranged for sure */
+        if(_round >= block.number) {
+            return false;
+        }
         if(tbl.players.length ==0) {
             /* table never used, no need to be arranged */
             return true;
