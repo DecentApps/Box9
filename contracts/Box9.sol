@@ -1033,6 +1033,7 @@ contract Box9 is Ibox9User, Ibox9Admin, Ibox9Any {
         /* move the pot*/
         newJ.pot = j.pot;
         j.pot = 0;
+        j.arranged = true;
     }
 
     /**
@@ -1054,8 +1055,8 @@ contract Box9 is Ibox9User, Ibox9Admin, Ibox9Any {
         require(r.result != 0);
 
         Table storage tbl = tableInfo[_round][_tableId];
-        uint256 houseGains = tbl.pot;
         require(tbl.open == true);
+        uint256 houseGains = tbl.pot;
 
         /* update winning numbers */
         tbl.winningNumbers = _winningBoxes(_round, _tableId);
@@ -1166,21 +1167,23 @@ contract Box9 is Ibox9User, Ibox9Admin, Ibox9Any {
 
     /**
      * @notice update jackpot state after a round is updated - callable by anyone
-     * @param  _round the block height of the round
      * @param  _tableId the block height of the round
      * @return uint256 - prize
      * @return uint256 - how many jackpoters
      */
-    function arrangeJackpotTable(uint256 _round, uint256 _tableId)
+    function arrangeJackpotTable(uint256 _tableId)
         external
         returns (uint256 award, uint256 winners)
     {
+        uint256 round = nextJackpot[_tableId];
+        require(block.number > round);
+
         /* check if normal table is arranged */
-        Table storage tbl = tableInfo[_round][_tableId];
-        require(tbl.players.length > 0 && !tbl.open);
+        Table storage tbl = tableInfo[round][_tableId];
+        require(!tbl.open);
 
         /* update Jackpot state */
-        Jackpot storage j = jackpotInfo[_round][_tableId];
+        Jackpot storage j = jackpotInfo[round][_tableId];
         require(!j.arranged);
 
         uint16 winnersMask =
@@ -1201,9 +1204,9 @@ contract Box9 is Ibox9User, Ibox9Admin, Ibox9Any {
             uint256 change = j.pot.sub(j.award.mul(j.winners.length));
             j.pot = j.pot.sub(change);
             houseVault.add(change);
-            nextJackpot[_tableId] = _computeNextJackpotRound(_round);
+            nextJackpot[_tableId] = _computeNextJackpotRound(round);
         } else {
-            /* no winner, move the pot to the next jackpot spin */
+            /* no winner, move the pot to the next spin */
             uint256 nextSpin = _getNextRound();
             nextJackpot[_tableId] = nextSpin;
             Jackpot storage nextJ = jackpotInfo[nextSpin][_tableId];
@@ -1212,7 +1215,7 @@ contract Box9 is Ibox9User, Ibox9Admin, Ibox9Any {
         }
 
         emit UpdateJackpotTableState(
-            _round,
+            round,
             _tableId,
             j.award,
             j.winners.length

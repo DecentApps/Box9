@@ -24,12 +24,11 @@ interface Ibox9Any {
 
     /**
      * @notice update jackpot state after a round is updated - callable by anyone
-     * @param  _round the block height of the round
      * @param  _tableId the block height of the round
      * @return uint256 - prize
      * @return uint256 - how many jackpoters
      */
-    function arrangeJackpotTable(uint256 _round, uint256 _tableId)
+    function arrangeJackpotTable(uint256 _tableId)
         external
         returns (uint256 award, uint256 winners);
 
