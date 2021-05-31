@@ -1260,13 +1260,16 @@ contract Box9 is Ibox9User, Ibox9Admin, Ibox9Any {
         LastResults storage tw = tableWinners[_tableId];
         require(tw.round != lastRound);
 
+        /* table must be arranged first */
+        Table storage tbl = tableInfo[lastRound][_tableId]; /* use as storage to save some gas*/
+        require(!tbl.open);
+
         /* initiate the structure */
         tw.round = lastRound;
         tw.lastWinners.length = 0;
         tw.lastAwards.length = 0;
 
         /* get all winners for the table */
-        Table storage tbl = tableInfo[lastRound][_tableId]; /* use as storage to save some gas*/
         Betting storage bet;
         uint256 mask;
         uint256 amount;
