@@ -139,7 +139,11 @@ contract Box9 is Ibox9User, Ibox9Admin, Ibox9Any {
 
     event UpdateRoundState(uint256 blocknumber, uint256 hash);
     event UpdateTableState(uint256 blocknumber, uint256 tableIndex);
-    event UpdateLastWinners(uint256 winners, uint256 totalAwards);
+    event UpdateLastWinners(
+        uint256 round,
+        uint256 winners,
+        uint256 totalAwards
+    );
     event UpdateJackpotTableState(
         uint256 jackpotRound,
         uint256 tableIndex,
@@ -961,13 +965,13 @@ contract Box9 is Ibox9User, Ibox9Admin, Ibox9Any {
     {
         Table storage tbl = tableInfo[_round][_tableId];
         /* if call takes place to soon, table isn't arranged for sure */
-        if(_round >= block.number) {
+        if (_round >= block.number) {
             return false;
         }
-        if(tbl.players.length ==0) {
+        if (tbl.players.length == 0) {
             /* table never used, no need to be arranged */
             return true;
-            }
+        }
         return !tbl.open;
     }
 
@@ -1313,7 +1317,7 @@ contract Box9 is Ibox9User, Ibox9Admin, Ibox9Any {
             }
         }
 
-        emit UpdateLastWinners(winners, totalAwards);
+        emit UpdateLastWinners(tw.round, winners, totalAwards);
         return (winners, totalAwards);
     }
 

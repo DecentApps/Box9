@@ -51,5 +51,9 @@ interface Ibox9Any {
         uint256 award,
         uint256 winners
     );
-    event UpdateLastWinners(uint256 winners, uint256 totalAwards);
+    event UpdateLastWinners(
+        uint256 round,
+        uint256 winners,
+        uint256 totalAwards
+    );
 }
