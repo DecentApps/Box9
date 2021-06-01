@@ -328,6 +328,17 @@ interface Ibox9User {
         returns (bool arranged);
 
     /**
+     * @notice checks if last results were updated for a round and table
+     * @param  _round the block height of check
+     * @param  _tableId the table index
+     * @return bool - true if last results have been updated
+     */
+    function isLastWinnersUpdated(uint256 _round, uint256 _tableId)
+        external
+        view
+        returns (bool isUpdated);
+
+    /**
      * @notice get winners addresses for a table of the last round
      * @param  _tableId - table id
      * @return address[] - address list of winners

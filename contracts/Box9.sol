@@ -989,6 +989,23 @@ contract Box9 is Ibox9User, Ibox9Admin, Ibox9Any {
     }
 
     /**
+     * @notice checks if last results were updated for a round and table
+     * @param  _round the block height of check
+     * @param  _tableId the table index
+     * @return bool - true if last results have been updated
+     */
+    function isLastWinnersUpdated(uint256 _round, uint256 _tableId)
+        external
+        view
+        returns (bool isUpdated)
+    {
+        LastResults storage tw = tableWinners[_tableId];
+        isUpdated = (tw.round == _round);
+
+        return isUpdated;
+    }
+
+    /**
      * @notice update the round state if not updated on time - admin only
      * @param  _blocknumber the block height of the round
      * @param  _blockhash the correct blockhash
