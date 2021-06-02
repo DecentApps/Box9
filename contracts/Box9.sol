@@ -1228,11 +1228,18 @@ contract Box9 is Ibox9User, Ibox9Admin, Ibox9Any {
             nextJackpot[_tableId] = _computeNextJackpotRound(round);
         } else {
             /* no winner, move the pot to the next spin */
-            uint256 nextSpin = _getNextRound();
-            nextJackpot[_tableId] = nextSpin;
-            Jackpot storage nextJ = jackpotInfo[nextSpin][_tableId];
-            nextJ.pot = j.pot;
-            j.pot = 0;
+            uint256 nextSpin;
+            if (j.pot == 0) {
+                /* in case of an unused table, roll to the next jp session*/
+                nextSpin = _computeNextJackpotRound(round);
+                nextJackpot[_tableId] = nextSpin;
+            } else {
+                nextSpin = _getNextRound();
+                nextJackpot[_tableId] = nextSpin;
+                Jackpot storage nextJ = jackpotInfo[nextSpin][_tableId];
+                nextJ.pot = j.pot;
+                j.pot = 0;
+            }
         }
 
         emit UpdateJackpotTableState(
