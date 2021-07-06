@@ -36,6 +36,7 @@ contract Box9 is Ibox9User, Ibox9Admin, Ibox9Any {
         nextBet = 1;
 
         /* initiate tables */
+        tables.push(1 * 1e8);
         tables.push(10 * 1e8);
         tables.push(50 * 1e8);
         tables.push(100 * 1e8);
@@ -682,8 +683,9 @@ contract Box9 is Ibox9User, Ibox9Admin, Ibox9Any {
         uint256 index;
         /* add the table price to blockhash to make it unique for each table
        and rehash using keccak256 */
-        uint256 random =
-            uint256(keccak256(_blockhash + tables[_tableId].div(1e8)));
+        uint256 random = uint256(
+            keccak256(_blockhash + tables[_tableId].div(1e8))
+        );
 
         random = random >> 4; /* discard the last hex digit*/
         for (uint8 i = 0; i < 9; i++) {
@@ -1087,11 +1089,10 @@ contract Box9 is Ibox9User, Ibox9Admin, Ibox9Any {
 
         Jackpot storage j = jackpotInfo[jRound][_tableId];
 
-        uint256 capital =
-            (tbl.boxesOnNumber[tbl.winningNumbers[0]] +
-                tbl.boxesOnNumber[tbl.winningNumbers[1]] +
-                tbl.boxesOnNumber[tbl.winningNumbers[2]])
-                .mul(tbl.boxPrice);
+        uint256 capital = (tbl.boxesOnNumber[tbl.winningNumbers[0]] +
+            tbl.boxesOnNumber[tbl.winningNumbers[1]] +
+            tbl.boxesOnNumber[tbl.winningNumbers[2]])
+        .mul(tbl.boxPrice);
         uint256 remaining = tbl.pot - capital;
         uint256 roundMask = 8 - rounding; /* ECOC has 8 decimals */
         uint256 award;
@@ -1207,10 +1208,9 @@ contract Box9 is Ibox9User, Ibox9Admin, Ibox9Any {
         Jackpot storage j = jackpotInfo[round][_tableId];
         require(!j.arranged);
 
-        uint16 winnersMask =
-            uint16(2)**tbl.winningNumbers[0] +
-                uint16(2)**tbl.winningNumbers[1] +
-                uint16(2)**tbl.winningNumbers[2];
+        uint16 winnersMask = uint16(2)**tbl.winningNumbers[0] +
+            uint16(2)**tbl.winningNumbers[1] +
+            uint16(2)**tbl.winningNumbers[2];
         for (uint256 i = 0; i < j.betId.length; i++) {
             Betting storage jBet = betInfo[j.betId[i]];
             if ((jBet.boxChoice & winnersMask) == winnersMask) {
@@ -1558,6 +1558,8 @@ contract Box9 is Ibox9User, Ibox9Admin, Ibox9Any {
             if ((nBet.round == _round) && (nBet.tableIndex == _tableId)) {
                 uint256 betId = nBet.id;
                 break;
+            } else {
+                continue;
             }
             /* if no normal bettor, revert */
             revert();
@@ -1573,6 +1575,8 @@ contract Box9 is Ibox9User, Ibox9Admin, Ibox9Any {
                 /* ok, player has joinned jackpot and also never got his prize */
                 uint256 jBetIndex = i;
                 break;
+            } else {
+                continue;
             }
             /* no jackpot joiner*/
             revert();
