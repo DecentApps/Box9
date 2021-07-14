@@ -204,7 +204,7 @@ contract Box9 is Ibox9User, Ibox9Admin, Ibox9Any {
         require(pl.referrer == zeroAddress);
 
         /* check if there is a referrer*/
-        if (_referrer == zeroAddress) {
+        if (_referrer == zeroAddress || _referrer == msg.sender) {
             pl.referrer = houseWallet;
             emit RegisterEvent(msg.sender, zeroAddress);
         } else {
